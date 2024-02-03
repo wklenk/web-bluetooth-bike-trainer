@@ -1,0 +1,19 @@
+<mat-card class="inline-card">
+    <mat-card-header>
+        <mat-card-title>Altitude Profile</mat-card-title>
+        <mat-card-subtitle>Minimum: {{altitudeMin}}m  Maximum: {{altitudeMax}}m  Gain: {{altitudeGain}}m  Loss: {{altitudeLoss}}m</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+        <svg [attr.width]="diagramWidth" [attr.height]="diagramHeight" [style.border]="'1px solid black'"
+            (mousemove)="onMouseMove($event)"
+            (click)="onCanvasClick($event)"
+        >
+            <line [attr.x1]="mouseX" y1="0" [attr.x2]="mouseX" [attr.y2]="diagramHeight" stroke="blue"></line>
+            <polyline [attr.points]="profilePolylineString" fill="none" stroke="black" stroke-width="2"></polyline>
+            <polyline [attr.points]="getSimplifiedProfilePolylineString()" fill="none" stroke="red" stroke-width="2"></polyline>
+            <circle *ngFor="let pointTuple of pointTuples; let i = index" [attr.cx]="pointTuple[0]" [attr.cy]="pointTuple[1]" r="4"  fill="red"
+                (click)="onCircleClick(i, $event)"
+            />
+        </svg>
+    </mat-card-content>
+</mat-card>

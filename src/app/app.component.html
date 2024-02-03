@@ -1,0 +1,22 @@
+<mat-toolbar color="primary">
+  <span>{{title}}</span>
+  <span class="toolbar-spacer"></span>
+  <input type="file" (change)="onFileSelected($event)" />
+  <button mat-raised-button color="primary" (click)="parseGpxFile()">Import GPX Track</button>
+  <button mat-raised-button color="primary" *ngIf="!isStarted" (click)="startSimulation()">Start</button>
+  <button mat-raised-button color="primary" *ngIf="isStarted" (click)="stopSimulation()">Stop</button>
+</mat-toolbar>
+<mat-progress-bar *ngIf="inProgress" mode="indeterminate"></mat-progress-bar>
+<div class="map-container">
+  <div id="map"></div>
+</div>
+<div class="container">
+  <app-heart-rate></app-heart-rate>
+  <app-speed></app-speed>
+  <app-cadence></app-cadence>
+  <app-power></app-power>
+  <app-elapsed-time [elapsedTime]="elapsedTime"></app-elapsed-time>
+  <app-distance></app-distance>
+  <app-altitude-profile [leafletGpx]="leafletGpx" (distanceEvent)="handleDistanceEvent($event)"></app-altitude-profile>
+  <app-fitness-machine></app-fitness-machine> 
+</div>

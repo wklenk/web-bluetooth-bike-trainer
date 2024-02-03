@@ -1,0 +1,11 @@
+.inline-card {
+    display: inline-block; /* Make the card inline block */
+    max-width: 100%; /* Ensure it doesn't exceed the container width */
+    opacity: 0.6;
+    border-radius: 25px;
+}
+
+.custom-font-size {
+    font-size: 40px; 
+    font-family: monospace;
+}

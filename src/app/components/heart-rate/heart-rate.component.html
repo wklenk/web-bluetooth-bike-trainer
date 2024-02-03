@@ -1,0 +1,13 @@
+<mat-card class="inline-card">
+    <mat-card-header>
+        <mat-card-title>Heart Rate</mat-card-title>
+        <mat-card-subtitle>{{ deviceName }}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content class="custom-font-size">
+        {{ heartRate }}
+    </mat-card-content>
+    <mat-card-actions>
+        <button mat-button (click)="connect()">Connect</button>
+        <button mat-button (click)="disconnect()">Disconnect</button>
+    </mat-card-actions>
+</mat-card>

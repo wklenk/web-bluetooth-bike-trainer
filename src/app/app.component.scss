@@ -1,0 +1,23 @@
+// https://css-tricks.com/snippets/css/a-guide-to-flexbox/
+.container {
+    display: flex; 
+    flex-wrap: wrap;
+    padding: 20px;
+    gap: 20px;
+}
+
+.toolbar-spacer {
+    flex: 1 1 auto;
+  }
+
+.map-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+}
+
+#map {
+    width: 100vw; /* 100% of the viewport width */
+    height: 100vh; /* 100% of the viewport height */
+}

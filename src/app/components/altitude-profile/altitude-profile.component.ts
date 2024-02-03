@@ -1,17 +1,17 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChange, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChange, SimpleChanges } from '@angular/core';
 import * as L from 'leaflet';
 import { PointTuple } from 'leaflet';
 import 'leaflet-gpx'; // Import the Leaflet GPX plugin
+import { FitnessMachineService } from 'src/app/services/fitness-machine.service';
 
 @Component({
   selector: 'app-altitude-profile',
   templateUrl: './altitude-profile.component.html',
   styleUrls: ['./altitude-profile.component.scss']
 })
-export class AltitudeProfileComponent implements OnChanges {
+export class AltitudeProfileComponent implements OnInit, OnChanges {
 
-  @Input() leafletGpx: L.GPX | undefined;
-
+  @Input() leafletGpx: L.GPX | undefined
 
   // Events the current distance index on the track based on the marker in this altitude profile
   @Output() distanceEvent = new EventEmitter<number>();
@@ -29,6 +29,14 @@ export class AltitudeProfileComponent implements OnChanges {
   mouseX = 0
 
   profilePolylineString = "" // For drawing a SVG polyline
+
+  constructor(private fitnessMachineService: FitnessMachineService) {}
+
+  ngOnInit() {
+    this.fitnessMachineService.indoorBikeData$.subscribe((indoorBikeData) => {
+      this.mouseX = Math.round((indoorBikeData.totalDistance - this.minDistance) / this.distanceDiff * this.diagramWidth)
+    });
+  }
   
   ngOnChanges(changes: SimpleChanges) {
     if (changes['leafletGpx']) {
@@ -82,7 +90,6 @@ export class AltitudeProfileComponent implements OnChanges {
        insertIndex = this.pointTuples.length;
      }
  
-     console.log('insertIndex', insertIndex)
      // Insert the new point at the calculated index
      this.pointTuples.splice(insertIndex, 0, newPoint);
   }

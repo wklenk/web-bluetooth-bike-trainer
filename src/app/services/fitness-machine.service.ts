@@ -47,6 +47,11 @@ export class FitnessMachineService {
   private indoorBikeDataSubject = new Subject<IndoorBikeData>();
   indoorBikeData$ = this.indoorBikeDataSubject.asObservable();
 
+  private startTime: number = 0;
+  private elapsedTime: number = 0;
+  private lastElapsedTime: number = 0;
+  private distance: number = 0;
+
   constructor() { }
 
   private device: BluetoothDevice | undefined
@@ -56,7 +61,6 @@ export class FitnessMachineService {
   private supportedResistanceLevelRangeCharacteristic: BluetoothRemoteGATTCharacteristic | undefined
   private fitnessMachineControlPointCharacteristic: BluetoothRemoteGATTCharacteristic | undefined
   public supportedResistanceLevelRange: SupportedResistanceLevelRange | undefined
-
 
   connect(): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -123,6 +127,8 @@ export class FitnessMachineService {
   }
 
   startNotifications(): Promise<void> {
+    this.startTime = Date.now() - this.elapsedTime;
+
     return new Promise((resolve, reject) => {
 
       this.indoorBikeDataCharacteristic?.startNotifications()
@@ -131,7 +137,23 @@ export class FitnessMachineService {
             const characteristic = event.target as BluetoothRemoteGATTCharacteristic;
 
             if (characteristic.value) {
-              this.indoorBikeDataSubject.next(this.parseIndoorBikeData(characteristic.value))
+              const indoorBikeData = this.parseIndoorBikeData(characteristic.value)
+
+              if (!indoorBikeData.elapsedTimePresent) {
+                this.elapsedTime = Date.now() - this.startTime
+                indoorBikeData.elapsedTime = this.elapsedTime / 1000 // In seconds
+              }
+
+              if (!indoorBikeData.totalDistancePresent) {
+                const timeDelta = this.elapsedTime - this.lastElapsedTime
+                const distanceDelta = timeDelta * indoorBikeData.instantaneousSpeed / 3600
+                // const distanceDelta = timeDelta * 200 / 3600
+                this.distance += distanceDelta
+                indoorBikeData.totalDistance = this.distance
+              }
+
+              this.lastElapsedTime = this.elapsedTime
+              this.indoorBikeDataSubject.next(indoorBikeData) // send notitification to subscribers
             }
           });
 
@@ -156,6 +178,21 @@ export class FitnessMachineService {
     })
   }
 
+  resistance20(): void {
+    this.requestControl()
+      .then(() => {
+        return this.reset()
+      })
+      .then(() => {
+        return this.setTargetResistanceLevel(2.0)
+      })
+      .catch((error) => {
+        console.error(error)
+      })
+      .finally(() => {
+      })
+  }
+
   // Initiates the procedure to request the control of a fitness machine.
   requestControl(): Promise<void> {
     if (!this.fitnessMachineControlPointCharacteristic) {
@@ -174,30 +211,6 @@ export class FitnessMachineService {
 
     const resetMessage = Uint8Array.of(0x01);
     return this.fitnessMachineControlPointCharacteristic.writeValueWithResponse(resetMessage)
-  }
-
-  // Initiate the procedure to start or resume a training session on the fitness machine.
-  startTrainingSession(): Promise<void> {
-    if (!this.fitnessMachineControlPointCharacteristic) {
-      return Promise.reject(new Error('No fitness_machine_control_point characteristic present.'))
-    }
-
-    const startOrResumeMessage = Uint8Array.of(0x07)
-    return this.fitnessMachineControlPointCharacteristic.writeValueWithResponse(startOrResumeMessage)
-  }
-
-  // Initiate the procedure to stop or pause a training session on the fitness machine.
-  stopTrainingSession(pause: boolean): Promise<void> {
-    if (!this.fitnessMachineControlPointCharacteristic) {
-      return Promise.reject(new Error('No fitness_machine_control_point characteristic present.'))
-    }
-
-    let stopOrPauseMessage = Uint8Array.of(0x08, 0x01)
-    if (pause) {
-      stopOrPauseMessage = Uint8Array.of(0x08, 0x02)
-    }
-
-    return this.fitnessMachineControlPointCharacteristic.writeValueWithResponse(stopOrPauseMessage)
   }
 
   // Initiate the procedure to set the target resistance level of the fitness machine.
@@ -250,7 +263,7 @@ export class FitnessMachineService {
       averageCadencePresent: false,
       averageCadence: 0,
       totalDistancePresent: false,
-      totalDistance: 0,
+      totalDistance: 0, // in m
       resistanceLevelPresent: false,
       resistanceLevel: 0,
       instantaneousPowerPresent: false,

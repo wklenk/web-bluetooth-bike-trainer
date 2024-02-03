@@ -10,7 +10,6 @@ import { MatCardModule } from '@angular/material/card'
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HeartRateComponent } from './components/heart-rate/heart-rate.component';
-import { FitnessMachineComponent } from './components/fitness-machine/fitness-machine.component';
 import { AltitudeProfileComponent } from './components/altitude-profile/altitude-profile.component';
 import { SpeedComponent } from './components/speed/speed.component';
 import { CadenceComponent } from './components/cadence/cadence.component';
@@ -22,7 +21,6 @@ import { ElapsedTimeComponent } from './components/elapsed-time/elapsed-time.com
   declarations: [
     AppComponent,
     HeartRateComponent,
-    FitnessMachineComponent,
     AltitudeProfileComponent,
     SpeedComponent,
     CadenceComponent,

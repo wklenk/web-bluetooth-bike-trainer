@@ -21,6 +21,12 @@ The web app is intended to help me in an upcoming bike competition. It shall be 
 * Show current time and slope
 * Show current heart rate from a Bluetooth LE heartrate monitor
 
+## Additional ideas
+
+* Auto-stop at the end of the track
+* Histogram in the backgroud of the tiles for speed, cadence, heartrate, power, distance
+* Allow to define start and stop point somewhere in the GPX track
+
 ## Sources
 The following sources of information were helpful:
 

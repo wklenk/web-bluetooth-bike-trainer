@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { FitnessMachineService } from 'src/app/services/fitness-machine.service';
 
 @Component({
@@ -7,14 +7,13 @@ import { FitnessMachineService } from 'src/app/services/fitness-machine.service'
   styleUrls: ['./distance.component.scss']
 })
 export class DistanceComponent {
-  distance: number = 0
-  speed: number = 0
+  distanceKm: number = 0
 
   constructor(private fitnessMachineService: FitnessMachineService) {}
 
   ngOnInit() {
     this.fitnessMachineService.indoorBikeData$.subscribe((indoorBikeData) => {
-      this.speed = Math.round(indoorBikeData.instantaneousSpeed)
+      this.distanceKm = Math.round(indoorBikeData.totalDistance / 100) / 10
     });
   }
 }

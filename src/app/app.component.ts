@@ -1,11 +1,12 @@
 /// <reference types="web-bluetooth" />
 
-import { AfterViewInit, Component } from '@angular/core';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
 
 import * as L from 'leaflet';
 import { GPX } from 'leaflet';
 import 'leaflet-gpx'; // Import the Leaflet GPX plugin
 import { StorageService } from './services/storage.service';
+import { FitnessMachineService } from './services/fitness-machine.service';
 
 export type ElevationPoint = {
   distance: number,
@@ -17,24 +18,59 @@ export type ElevationPoint = {
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent implements AfterViewInit, OnInit {
 
   title = 'Web Bluetooth Bike Trainer';
   inProgress = false
-  leafletGpx: L.GPX | undefined;
+  leafletGpx: L.GPX | undefined
 
-  selectedFile: File | null = null;
+  selectedFile: File | null = null
 
   isStarted = false
-  startTime: number = 0;
-  elapsedTime: number = 0;
-  timer: any;
 
-  private map: L.Map | undefined;
-  private marker: L.Marker | undefined;
+  private map: L.Map | undefined
+  private marker: L.Marker | undefined
   private elevationPoints: ElevationPoint[] = []
 
-  constructor(private storageService: StorageService) { }
+  constructor(private storageService: StorageService, private fitnessMachineService: FitnessMachineService) { }
+
+  startSimulation(): void {
+    if (!this.isStarted) {
+      this.inProgress = true
+      this.fitnessMachineService.connect()
+        .then(deviceName => {
+
+          return this.fitnessMachineService.startNotifications()
+        })
+        .finally(() => {
+          this.inProgress = false
+          this.isStarted = true
+        })
+
+    }
+  }
+
+  stopSimulation(): void {
+    if (this.isStarted) {
+      this.inProgress = true
+
+      this.fitnessMachineService.stopNotifications()
+        .then(() => {
+          this.fitnessMachineService.disconnect()
+        })
+        .finally(() => {
+          this.inProgress = false
+          this.isStarted = false
+        })
+    }
+  }
+
+  ngOnInit() {
+    this.fitnessMachineService.indoorBikeData$.subscribe((indoorBikeData) => {
+      // Update marker on track
+      this.handleDistanceEvent(indoorBikeData.totalDistance)
+    });
+  }
 
   ngAfterViewInit(): void {
     this.initMap();
@@ -109,25 +145,6 @@ export class AppComponent implements AfterViewInit {
     if (this.selectedFile) {
       reader.readAsText(this.selectedFile);
     }
-  }
-
-  startSimulation(): void {
-    this.isStarted = true;
-
-    this.startTime = Date.now() - this.elapsedTime;
-    this.timer = setInterval(() => {
-      this.elapsedTime = Date.now() - this.startTime;
-    }, 1000); 
-  }
-
-  stopSimulation(): void {
-    this.isStarted = false;
-    clearInterval(this.timer);
-  }
-
-  resetSimulation(): void {
-    this.stopSimulation();
-    this.elapsedTime = 0;
   }
 
   // Well, leaflet-gpx alread reads and provides elevation-by-distance of all track points,
@@ -254,6 +271,7 @@ export class AppComponent implements AfterViewInit {
   // Move a marker along the trace based on the position of the mouse in the
   // altitude profile component
   handleDistanceEvent(distance: number): void {
+    // Update marker on
     if (this.elevationPoints.length > 0) {
       this.marker?.setLatLng(this.findClosestPointByDistance(distance))
     }

@@ -7,7 +7,13 @@ import { FitnessMachineService } from 'src/app/services/fitness-machine.service'
   styleUrls: ['./elapsed-time.component.scss']
 })
 export class ElapsedTimeComponent {
-  @Input() elapsedTime: number = 0;
+  constructor(private fitnessMachineService: FitnessMachineService) {}
 
-  constructor() {}
+  elapsedTime: number = 0;
+
+  ngOnInit() {
+    this.fitnessMachineService.indoorBikeData$.subscribe((indoorBikeData) => {
+      this.elapsedTime = indoorBikeData.elapsedTime * 1000 // convert to ms
+    });
+  }
 }

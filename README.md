@@ -1,4 +1,4 @@
-# WebBluetoothBikeTrainer
+# Web Bluetooth Bike Trainer
 
 Status: Work in progress
 
@@ -35,6 +35,7 @@ The following sources of information were helpful:
 
 * Angular
 * Angular Material
+* https://leafletjs.com Leaflet
 * https://github.com/mpetazzoni/leaflet-gpx GPX plugin for Leaflet
 
 ## Development server

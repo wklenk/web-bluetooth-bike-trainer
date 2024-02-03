@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "deploy": "scp -r dist/web-bluetooth-bike-trainer root@45.136.29.34:/var/www"
   },
   "private": true,
   "dependencies": {

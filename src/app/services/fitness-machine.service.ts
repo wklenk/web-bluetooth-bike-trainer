@@ -30,6 +30,8 @@ export type IndoorBikeData = {
   elapsedTime: number, // s
   remainingTimePresent: boolean
   remainingTime: number // s
+
+  inclination: number // percent. 
 }
 
 type SupportedResistanceLevelRange = {
@@ -51,6 +53,7 @@ export class FitnessMachineService {
   private elapsedTime: number = 0;
   private lastElapsedTime: number = 0;
   private distance: number = 0;
+  private inclination: number = 0;
 
   constructor() { }
 
@@ -152,6 +155,8 @@ export class FitnessMachineService {
                 indoorBikeData.totalDistance = this.distance
               }
 
+              indoorBikeData.inclination = this.inclination
+
               this.lastElapsedTime = this.elapsedTime
               this.indoorBikeDataSubject.next(indoorBikeData) // send notitification to subscribers
             }
@@ -176,6 +181,10 @@ export class FitnessMachineService {
         })
         .catch(error => reject(error))
     })
+  }
+
+  setInclination(inclination: number): void {
+    this.inclination = inclination
   }
 
   resistance20(): void {
@@ -282,6 +291,7 @@ export class FitnessMachineService {
       elapsedTime: 0,
       remainingTimePresent: false,
       remainingTime: 0,
+      inclination: 0
     }
 
     let index = 2

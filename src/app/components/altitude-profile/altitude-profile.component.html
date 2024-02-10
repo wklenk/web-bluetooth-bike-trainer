@@ -10,8 +10,8 @@
         >
             <line [attr.x1]="mouseX" y1="0" [attr.x2]="mouseX" [attr.y2]="diagramHeight" stroke="blue"></line>
             <polyline [attr.points]="profilePolylineString" fill="none" stroke="black" stroke-width="2"></polyline>
-            <polyline [attr.points]="getSimplifiedProfilePolylineString()" fill="none" stroke="red" stroke-width="2"></polyline>
-            <circle *ngFor="let pointTuple of pointTuples; let i = index" [attr.cx]="pointTuple[0]" [attr.cy]="pointTuple[1]" r="4"  fill="red"
+            <polyline [attr.points]="simplifiedProfilePolylineString" fill="none" stroke="red" stroke-width="2"></polyline>
+            <circle *ngFor="let point of simplifiedProfilePoints; let i = index" [attr.cx]="point.x" [attr.cy]="point.y" r="4"  fill="red"
                 (click)="onCircleClick(i, $event)"
             />
         </svg>

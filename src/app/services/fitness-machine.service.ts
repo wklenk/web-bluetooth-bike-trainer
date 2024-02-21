@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
+import { DistanceAndElevation } from '../components/altitude-profile/altitude-profile.component';
 
 export type IndoorBikeData = {
   instantaneousSpeedPresent: boolean,
@@ -10,10 +11,6 @@ export type IndoorBikeData = {
   instantaneousCadence: number, // rpm
   averageCadencePresent: boolean,
   averageCadence: number, // rpm
-  totalDistancePresent: boolean,
-  totalDistance: number, // m
-  resistanceLevelPresent: boolean,
-  resistanceLevel: number,
   instantaneousPowerPresent: boolean,
   instantaneousPower: number, // W
   averagePowerPresent: boolean,
@@ -26,12 +23,14 @@ export type IndoorBikeData = {
   heartRate: number, // bpm
   metabolicEquivalentPresent: boolean,
   metabolicEquivalent: number,
-  elapsedTimePresent: boolean,
-  elapsedTime: number, // s
-  remainingTimePresent: boolean
-  remainingTime: number // s
 
-  inclination: number // percent. 
+  // KICKR doesn't send it
+  nativeElapsedTimePresent: boolean,
+  nativeElapsedTime: number, // s
+  nativeTotalDistancePresent: boolean,
+  nativeTotalDistance: number, // m
+  nativeResistanceLevelPresent: boolean,
+  nativeResistanceLevel: number,
 }
 
 type SupportedResistanceLevelRange = {
@@ -45,15 +44,9 @@ type SupportedResistanceLevelRange = {
   providedIn: 'root'
 })
 export class FitnessMachineService {
-
+  
   private indoorBikeDataSubject = new Subject<IndoorBikeData>();
   indoorBikeData$ = this.indoorBikeDataSubject.asObservable();
-
-  private startTime: number = 0;
-  private elapsedTime: number = 0;
-  private lastElapsedTime: number = 0;
-  private distance: number = 0;
-  private inclination: number = 0;
 
   constructor() { }
 
@@ -107,12 +100,14 @@ export class FitnessMachineService {
           this.fitnessMachineControlPointCharacteristic = characteristic
           console.info('fitnessMachineControlPoint', characteristic)
 
+          return this.reset()
+        })
+        .then(() => {
           return this.fitnessMachineControlPointCharacteristic?.startNotifications()
         })
         .then(() => {
           this.fitnessMachineControlPointCharacteristic?.addEventListener('characteristicvaluechanged', (event) => {
             const characteristic = event.target as BluetoothRemoteGATTCharacteristic;
-
             console.info('fitnessMachineControlPoint event', event)
           })
 
@@ -125,13 +120,21 @@ export class FitnessMachineService {
     })
   }
 
-  disconnect(): void {
-    this.server?.disconnect()
+  disconnect(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.reset()
+        .then(() => {
+          this.server?.disconnect()
+          resolve()
+        })
+        .catch((error) => {
+          this.server?.disconnect()
+          reject(error)
+        })
+    })
   }
 
   startNotifications(): Promise<void> {
-    this.startTime = Date.now() - this.elapsedTime;
-
     return new Promise((resolve, reject) => {
 
       this.indoorBikeDataCharacteristic?.startNotifications()
@@ -141,24 +144,7 @@ export class FitnessMachineService {
 
             if (characteristic.value) {
               const indoorBikeData = this.parseIndoorBikeData(characteristic.value)
-
-              if (!indoorBikeData.elapsedTimePresent) {
-                this.elapsedTime = Date.now() - this.startTime
-                indoorBikeData.elapsedTime = this.elapsedTime / 1000 // In seconds
-              }
-
-              if (!indoorBikeData.totalDistancePresent) {
-                const timeDelta = this.elapsedTime - this.lastElapsedTime
-                const distanceDelta = timeDelta * indoorBikeData.instantaneousSpeed / 3600
-                // const distanceDelta = timeDelta * 200 / 3600
-                this.distance += distanceDelta
-                indoorBikeData.totalDistance = this.distance
-              }
-
-              indoorBikeData.inclination = this.inclination
-
-              this.lastElapsedTime = this.elapsedTime
-              this.indoorBikeDataSubject.next(indoorBikeData) // send notitification to subscribers
+              this.indoorBikeDataSubject.next(indoorBikeData)
             }
           });
 
@@ -183,15 +169,8 @@ export class FitnessMachineService {
     })
   }
 
-  setInclination(inclination: number): void {
-    this.inclination = inclination
-  }
-
   resistance20(): void {
     this.requestControl()
-      .then(() => {
-        return this.reset()
-      })
       .then(() => {
         return this.setTargetResistanceLevel(2.0)
       })
@@ -252,14 +231,14 @@ export class FitnessMachineService {
     const averageSpeedPresent = flags & 0x0002
     const instantaneousCadencePresent = flags & 0x0004
     const averageCadencePresent = flags & 0x0008
-    const totalDistancePresent = flags & 0x0010
-    const resistanceLevelPresent = flags & 0x0020
+    const nativeTotalDistancePresent = flags & 0x0010
+    const nativeResistanceLevelPresent = flags & 0x0020
     const instantaneousPowerPresent = flags & 0x0040
     const averagePowerPresent = flags & 0x0080
     const expendedEnergyPresent = flags & 0x0100
     const heartRatePresent = flags & 0x0200
     const metabolicEquivalentPresent = flags & 0x0400
-    const elapsedTimePresent = flags & 0x0800
+    const nativeElapsedTimePresent = flags & 0x0800
     const remainingTimePresent = flags & 0x1000
 
     var result: IndoorBikeData = {
@@ -271,10 +250,6 @@ export class FitnessMachineService {
       instantaneousCadence: 0,
       averageCadencePresent: false,
       averageCadence: 0,
-      totalDistancePresent: false,
-      totalDistance: 0, // in m
-      resistanceLevelPresent: false,
-      resistanceLevel: 0,
       instantaneousPowerPresent: false,
       instantaneousPower: 0,
       averagePowerPresent: false,
@@ -287,11 +262,14 @@ export class FitnessMachineService {
       heartRate: 0,
       metabolicEquivalentPresent: false,
       metabolicEquivalent: 0,
-      elapsedTimePresent: false,
-      elapsedTime: 0,
-      remainingTimePresent: false,
-      remainingTime: 0,
-      inclination: 0
+      
+      // KICKR doesn't send it
+      nativeElapsedTimePresent: false,
+      nativeElapsedTime: 0,
+      nativeResistanceLevelPresent: false,
+      nativeResistanceLevel: 0,
+      nativeTotalDistancePresent: false,
+      nativeTotalDistance: 0, // in m
     }
 
     let index = 2
@@ -320,15 +298,15 @@ export class FitnessMachineService {
       index += 2
     }
 
-    if (totalDistancePresent) {
-      result.totalDistancePresent = true
-      result.totalDistance = (data.getUint8(index + 2) * 256 + data.getUint8(index + 1)) * 256 + data.getUint8(index)
+    if (nativeTotalDistancePresent) {
+      result.nativeTotalDistancePresent = true
+      result.nativeTotalDistance = (data.getUint8(index + 2) * 256 + data.getUint8(index + 1)) * 256 + data.getUint8(index)
       index += 3
     }
 
-    if (resistanceLevelPresent) {
-      result.resistanceLevelPresent = true
-      result.resistanceLevel = data.getInt16(index, /*littleEndian=*/ true)
+    if (nativeResistanceLevelPresent) {
+      result.nativeResistanceLevelPresent = true
+      result.nativeResistanceLevel = data.getInt16(index, /*littleEndian=*/ true)
       index += 2
     }
 
@@ -366,15 +344,13 @@ export class FitnessMachineService {
       index += 1
     }
 
-    if (elapsedTimePresent) {
-      result.elapsedTimePresent = true
-      result.elapsedTime = data.getUint16(index, /*littleEndian=*/ true)
+    if (nativeElapsedTimePresent) {
+      result.nativeElapsedTimePresent = true
+      result.nativeElapsedTime = data.getUint16(index, /*littleEndian=*/ true)
       index += 2
     }
 
     if (remainingTimePresent) {
-      result.remainingTimePresent = true
-      result.remainingTime = data.getUint16(index, /*littleEndian=*/ true)
       index += 2
     }
 
@@ -401,4 +377,6 @@ export class FitnessMachineService {
 
     return result
   }
+
+  
 }

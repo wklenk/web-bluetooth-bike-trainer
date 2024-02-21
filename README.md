@@ -35,7 +35,9 @@ The following sources of information were helpful:
 * https://googlechrome.github.io/samples/web-bluetooth/index.html
 * https://whatsonzwift.com/gpx-to-zwift-workout
 * https://github.com/zacharyedwardbull/pycycling
+* https://www.bluetooth.com/specifications/specs/fitness-machine-service-1-0/
 * https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.indoor_bike_data.xml
+* https://support.wahoofitness.com/hc/en-us/articles/4402565219218-A-Guide-to-using-Level-Mode
 
 ## Main dependencies
 
@@ -43,6 +45,16 @@ The following sources of information were helpful:
 * Angular Material
 * https://leafletjs.com Leaflet
 * https://github.com/mpetazzoni/leaflet-gpx GPX plugin for Leaflet
+
+## My Wahoo KICKR data
+
+* Resistence Level range: From 0 to 100 with minimum increment 1
+* Supported Power range: From 0 to 2000 with minimum increment 1
+
+Does this mean ...
+
+* with resistance level 0 you need to provide a power 
+
 
 ## Development server
 

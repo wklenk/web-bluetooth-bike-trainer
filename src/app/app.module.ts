@@ -6,6 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatCardModule } from '@angular/material/card'
+import { MatStepperModule } from '@angular/material/stepper';
+import {MatFormFieldModule} from '@angular/material/form-field';
 
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -16,6 +18,8 @@ import { CadenceComponent } from './components/cadence/cadence.component';
 import { PowerComponent } from './components/power/power.component';
 import { DistanceComponent } from './components/distance/distance.component';
 import { ElapsedTimeComponent } from './components/elapsed-time/elapsed-time.component';
+import { InclinationComponent } from './components/inclination/inclination.component';
+import { ResistanceLevelComponent } from './components/resistance-level/resistance-level.component';
 
 @NgModule({
   declarations: [
@@ -27,6 +31,8 @@ import { ElapsedTimeComponent } from './components/elapsed-time/elapsed-time.com
     PowerComponent,
     DistanceComponent,
     ElapsedTimeComponent,
+    InclinationComponent,
+    ResistanceLevelComponent,
   ],
   imports: [
     BrowserModule,
@@ -35,7 +41,9 @@ import { ElapsedTimeComponent } from './components/elapsed-time/elapsed-time.com
     MatIconModule,
     MatButtonModule,
     MatToolbarModule,
-    MatCardModule
+    MatCardModule,
+    MatStepperModule,
+    MatFormFieldModule
   ],
   providers: [],
   bootstrap: [AppComponent]

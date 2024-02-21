@@ -6,6 +6,7 @@ import * as L from 'leaflet';
 import { GPX } from 'leaflet';
 import 'leaflet-gpx'; // Import the Leaflet GPX plugin
 import { StorageService } from './services/storage.service';
+import { ResistanceLevelIngestionService } from './services/restistance-level-ingestion.service';
 import { FitnessMachineService } from './services/fitness-machine.service';
 
 export type ElevationPoint = {
@@ -26,49 +27,52 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   selectedFile: File | null = null
 
-  isStarted = false
+  isSimulationStarted = false
 
   private map: L.Map | undefined
   private marker: L.Marker | undefined
   private elevationPoints: ElevationPoint[] = []
 
-  constructor(private storageService: StorageService, private fitnessMachineService: FitnessMachineService) { }
+  constructor(
+    private storageService: StorageService, 
+    private resistanceLevelIngestionService: ResistanceLevelIngestionService,
+    private fitnessMachineService: FitnessMachineService
+    ) { }
 
   startSimulation(): void {
-    if (!this.isStarted) {
+    if (!this.isSimulationStarted) {
       this.inProgress = true
-      this.fitnessMachineService.connect()
-        .then(deviceName => {
-
-          return this.fitnessMachineService.startNotifications()
+      this.resistanceLevelIngestionService.connect()
+        .then(() => {
+          this.fitnessMachineService.startNotifications()
         })
         .finally(() => {
           this.inProgress = false
-          this.isStarted = true
+          this.isSimulationStarted = true
         })
 
     }
   }
 
   stopSimulation(): void {
-    if (this.isStarted) {
+    if (this.isSimulationStarted) {
       this.inProgress = true
 
       this.fitnessMachineService.stopNotifications()
         .then(() => {
-          this.fitnessMachineService.disconnect()
+          this.resistanceLevelIngestionService.disconnect()
         })
         .finally(() => {
           this.inProgress = false
-          this.isStarted = false
+          this.isSimulationStarted = false
         })
     }
   }
 
   ngOnInit() {
-    this.fitnessMachineService.indoorBikeData$.subscribe((indoorBikeData) => {
+    this.resistanceLevelIngestionService.resistanceLevelIngestionData$.subscribe((resistanceLevelIngestionData) => {
       // Update marker on track
-      this.handleDistanceEvent(indoorBikeData.totalDistance)
+      this.handleDistanceEvent(resistanceLevelIngestionData.calculatedTotalDistance)
     });
   }
 
@@ -95,18 +99,22 @@ export class AppComponent implements AfterViewInit, OnInit {
 
     this.marker = L.marker({ lat: 0, lng: 0 })
       .addTo(this.map)
-
   }
 
   // Use leaflet-gpx to draw a polyline on the map, including markers
   displayGPXTrack(gpxData: string): void {
     if (this.map) {
+      // Delete (eventually) existing GPX track layer
+      if (this.leafletGpx) {
+        this.map.removeLayer(this.leafletGpx)
+      }
+
       new L.GPX(gpxData, {
         async: true
       }).on('loaded', (e: any) => {
         this.leafletGpx = e.target as GPX;
         this.map?.fitBounds(this.leafletGpx.getBounds(), {
-          paddingTopLeft: [0, 300],
+          paddingTopLeft: [10, 10],
           paddingBottomRight: [10, 10]
         });
       }).addTo(this.map);

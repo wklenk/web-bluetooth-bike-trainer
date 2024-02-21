@@ -1,5 +1,5 @@
-import { Component, Input } from '@angular/core';
-import { FitnessMachineService } from 'src/app/services/fitness-machine.service';
+import { Component } from '@angular/core';
+import { TotalDistanceIngestionService } from 'src/app/services/total-distance-ingestion.service';
 
 @Component({
   selector: 'app-distance',
@@ -9,11 +9,11 @@ import { FitnessMachineService } from 'src/app/services/fitness-machine.service'
 export class DistanceComponent {
   distanceKm: number = 0
 
-  constructor(private fitnessMachineService: FitnessMachineService) {}
+  constructor(private totalDistanceIngestionService: TotalDistanceIngestionService) { }
 
   ngOnInit() {
-    this.fitnessMachineService.indoorBikeData$.subscribe((indoorBikeData) => {
-      this.distanceKm = Math.round(indoorBikeData.totalDistance / 100) / 10
+    this.totalDistanceIngestionService.totalDistanceIngestionData$.subscribe((totalDistanceIngestionData) => {
+      this.distanceKm = Math.round(totalDistanceIngestionData.calculatedTotalDistance / 100) / 10
     });
   }
 }

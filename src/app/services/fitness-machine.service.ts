@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
-import { DistanceAndElevation } from '../components/altitude-profile/altitude-profile.component';
 
 export type IndoorBikeData = {
   instantaneousSpeedPresent: boolean,
@@ -39,6 +38,11 @@ type SupportedResistanceLevelRange = {
   minimumIncrement: number
 }
 
+type SupportedPowerRange = {
+  minimumPower: number,
+  maximumPower: number,
+  minimumIncrement: number
+}
 
 @Injectable({
   providedIn: 'root'
@@ -54,9 +58,9 @@ export class FitnessMachineService {
   private server: BluetoothRemoteGATTServer | undefined
   private service: BluetoothRemoteGATTService | undefined
   private indoorBikeDataCharacteristic: BluetoothRemoteGATTCharacteristic | undefined
-  private supportedResistanceLevelRangeCharacteristic: BluetoothRemoteGATTCharacteristic | undefined
   private fitnessMachineControlPointCharacteristic: BluetoothRemoteGATTCharacteristic | undefined
   public supportedResistanceLevelRange: SupportedResistanceLevelRange | undefined
+  public supportedPowerRange: SupportedPowerRange | undefined
 
   connect(): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -83,15 +87,26 @@ export class FitnessMachineService {
           return this.service?.getCharacteristic('supported_resistance_level_range')
         })
         .then(characteristic => {
-          this.supportedResistanceLevelRangeCharacteristic = characteristic
           console.info('supportedResistanceLevelRange', characteristic)
-
           return characteristic?.readValue()
         })
         .then(value => {
           if (value) {
             this.supportedResistanceLevelRange = this.parseSupportedResistanceLevelRange(value)
             console.info('Parsed supportedResistanceLevelRange', this.supportedResistanceLevelRange)
+          }
+
+          return this.service?.getCharacteristic('supported_power_range')
+        })
+          .then(characteristic => {
+          console.info('supportedPowerRange', characteristic)
+
+          return characteristic?.readValue()
+        })
+        .then(value => {
+          if (value) {
+            this.supportedPowerRange = this.parseSupportedPowerRange(value)
+            console.info('Parsed supportedPowerRange', this.supportedPowerRange)
           }
 
           return this.service?.getCharacteristic('fitness_machine_control_point')
@@ -169,18 +184,6 @@ export class FitnessMachineService {
     })
   }
 
-  resistance20(): void {
-    this.requestControl()
-      .then(() => {
-        return this.setTargetResistanceLevel(2.0)
-      })
-      .catch((error) => {
-        console.error(error)
-      })
-      .finally(() => {
-      })
-  }
-
   // Initiates the procedure to request the control of a fitness machine.
   requestControl(): Promise<void> {
     if (!this.fitnessMachineControlPointCharacteristic) {
@@ -220,6 +223,27 @@ export class FitnessMachineService {
     const setTargetResistanceLevelMessage = Uint8Array.of(0x04, resistanceLevel * 10)
 
     return this.fitnessMachineControlPointCharacteristic.writeValueWithResponse(setTargetResistanceLevelMessage)
+  }
+
+  // Initiate the procedure to set the target power of the fitness machine.
+  setTargetPower(power: number): Promise<void> {
+    if (!this.fitnessMachineControlPointCharacteristic) {
+      return Promise.reject(new Error('No fitness_machine_control_point characteristic present.'))
+    }
+
+    if (!this.supportedPowerRange) {
+      return Promise.reject(new Error('No supported power range present.'))
+    }
+
+    if (power < this.supportedPowerRange.minimumPower ||
+      power > this.supportedPowerRange.maximumPower) {
+      return Promise.reject(new Error('Requested power ' + power + " is out of range."
+        + this.supportedPowerRange))
+    }
+
+    const setTargetPowerMessage = Int16Array.of(0x05, power)
+
+    return this.fitnessMachineControlPointCharacteristic.writeValueWithResponse(setTargetPowerMessage)
   }
 
   // See https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.indoor_bike_data.xml
@@ -378,5 +402,24 @@ export class FitnessMachineService {
     return result
   }
 
-  
+  // See https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.supported_power_range.xml
+  private parseSupportedPowerRange(data: DataView): SupportedPowerRange {
+
+    var result: SupportedPowerRange = {
+      minimumPower: 0,
+      maximumPower: 0,
+      minimumIncrement: 0
+    }
+
+    let index = 0
+
+    result.minimumPower = data.getInt16(index, /*littleEndian=*/ true)
+    index += 2
+    result.maximumPower = data.getInt16(index, /*littleEndian=*/ true)
+    index += 2
+    result.minimumIncrement = data.getUint16(index, /*littleEndian=*/ true)
+    index += 2
+
+    return result
+  }
 }

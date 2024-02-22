@@ -21,7 +21,7 @@ export class TotalDistanceIngestionService {
     this.elapsedTimeIngestionService.elapsedTimeIngestionData$.subscribe((elapsedTimeIngestionData) => {
 
       const timeDelta = elapsedTimeIngestionData.calculatedElapsedTime - this.lastElapsedTime
-      const distanceDelta = timeDelta * elapsedTimeIngestionData.instantaneousSpeed / 3600
+      const distanceDelta = timeDelta * elapsedTimeIngestionData.instantaneousSpeed / 3.6
       this.totalDistance += distanceDelta
 
       this.lastElapsedTime = elapsedTimeIngestionData.calculatedElapsedTime

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ResistanceLevelIngestionService } from 'src/app/services/restistance-level-ingestion.service';
+import { TargetPowerIngestionService } from 'src/app/services/target-power-ingestion.service';
 
 @Component({
   selector: 'app-resistance-level',
@@ -10,11 +10,11 @@ export class ResistanceLevelComponent {
 
   resistanceLevel: number = 0
 
-  constructor(private resistanceLevelIngestionService: ResistanceLevelIngestionService) {}
+  constructor(private targetPowerIngestionService: TargetPowerIngestionService) {}
 
   ngOnInit() {
-    this.resistanceLevelIngestionService.resistanceLevelIngestionData$.subscribe((resistanceLevelIngestionData) => {
-      this.resistanceLevel = resistanceLevelIngestionData.calculatedResistanceLevel
+    this.targetPowerIngestionService.targetPowerIngestionData$.subscribe((targetPowerIngestionData) => {
+      this.resistanceLevel = targetPowerIngestionData.targetPower
     });
   }
 }

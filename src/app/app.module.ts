@@ -7,10 +7,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatCardModule } from '@angular/material/card'
 import { MatStepperModule } from '@angular/material/stepper';
-import {MatFormFieldModule} from '@angular/material/form-field';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ToastrModule } from 'ngx-toastr';
 import { HeartRateComponent } from './components/heart-rate/heart-rate.component';
 import { AltitudeProfileComponent } from './components/altitude-profile/altitude-profile.component';
 import { SpeedComponent } from './components/speed/speed.component';
@@ -37,6 +38,7 @@ import { ResistanceLevelComponent } from './components/resistance-level/resistan
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
+    ToastrModule.forRoot(),
     MatProgressBarModule,
     MatIconModule,
     MatButtonModule,

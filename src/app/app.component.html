@@ -7,6 +7,7 @@
   <button mat-raised-button color="primary" *ngIf="isSimulationStarted" (click)="stopSimulation()">Stop Simulation</button>
 </mat-toolbar>
 <mat-progress-bar *ngIf="inProgress" mode="indeterminate"></mat-progress-bar>
+<div aria-live="polite" toastContainer></div>
 <div class="map-container">
   <div id="map"></div>
 </div>

@@ -42,7 +42,8 @@
             "styles": [
               "./node_modules/leaflet/dist/leaflet.css",
               "@angular/material/prebuilt-themes/indigo-pink.css",
-              "src/styles.scss"
+              "src/styles.scss",
+              "./node_modules/ngx-toastr/toastr.css"
             ],
             "scripts": []
           },

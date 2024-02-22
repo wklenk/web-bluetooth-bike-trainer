@@ -1,13 +1,14 @@
 /// <reference types="web-bluetooth" />
 
-import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 
 import * as L from 'leaflet';
 import { GPX } from 'leaflet';
 import 'leaflet-gpx'; // Import the Leaflet GPX plugin
 import { StorageService } from './services/storage.service';
-import { ResistanceLevelIngestionService } from './services/restistance-level-ingestion.service';
+import { TargetPowerIngestionService } from './services/target-power-ingestion.service';
 import { FitnessMachineService } from './services/fitness-machine.service';
+import { ToastContainerDirective, ToastrService } from 'ngx-toastr';
 
 export type ElevationPoint = {
   distance: number,
@@ -20,6 +21,9 @@ export type ElevationPoint = {
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements AfterViewInit, OnInit {
+
+  @ViewChild(ToastContainerDirective, { static: true })
+  toastContainer: ToastContainerDirective | undefined;
 
   title = 'Web Bluetooth Bike Trainer';
   inProgress = false
@@ -34,10 +38,11 @@ export class AppComponent implements AfterViewInit, OnInit {
   private elevationPoints: ElevationPoint[] = []
 
   constructor(
-    private storageService: StorageService, 
-    private resistanceLevelIngestionService: ResistanceLevelIngestionService,
+    private toastrService: ToastrService,
+    private storageService: StorageService,
+    private resistanceLevelIngestionService: TargetPowerIngestionService,
     private fitnessMachineService: FitnessMachineService
-    ) { }
+  ) { }
 
   startSimulation(): void {
     if (!this.isSimulationStarted) {
@@ -46,11 +51,16 @@ export class AppComponent implements AfterViewInit, OnInit {
         .then(() => {
           this.fitnessMachineService.startNotifications()
         })
+        .then(() => {
+          this.toastrService.info("Info", "Connected")
+        })
+        .catch((error) => {
+          this.toastrService.error("Error", error)
+        })
         .finally(() => {
           this.inProgress = false
           this.isSimulationStarted = true
         })
-
     }
   }
 
@@ -62,6 +72,12 @@ export class AppComponent implements AfterViewInit, OnInit {
         .then(() => {
           this.resistanceLevelIngestionService.disconnect()
         })
+        .then(() => {
+          this.toastrService.info("Info", "Disconnected")
+        })
+        .catch((error) => {
+          this.toastrService.error("Error", error)
+        })
         .finally(() => {
           this.inProgress = false
           this.isSimulationStarted = false
@@ -70,7 +86,7 @@ export class AppComponent implements AfterViewInit, OnInit {
   }
 
   ngOnInit() {
-    this.resistanceLevelIngestionService.resistanceLevelIngestionData$.subscribe((resistanceLevelIngestionData) => {
+    this.resistanceLevelIngestionService.targetPowerIngestionData$.subscribe((resistanceLevelIngestionData) => {
       // Update marker on track
       this.handleDistanceEvent(resistanceLevelIngestionData.calculatedTotalDistance)
     });

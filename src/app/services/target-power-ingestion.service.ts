@@ -16,36 +16,62 @@ export class TargetPowerIngestionService {
   private targetPowerIngestionDataSubject = new Subject<TargetPowerIngestionData>();
   targetPowerIngestionData$ = this.targetPowerIngestionDataSubject.asObservable();
 
-  private currentTargetPower = 0.0
+  private currentTargetPower = -1
 
   constructor(
     private toastrService: ToastrService,
-    private inclinationIngestionService: InclinationIngestionService, 
+    private inclinationIngestionService: InclinationIngestionService,
     private fitnessMachineService: FitnessMachineService,
-    ) {
+  ) {
     this.inclinationIngestionService.inclinationIngestionData$.subscribe((inclinationIngestionData) => {
 
       const inclinationPercent = inclinationIngestionData.inclination
       const inclinationDecimal = inclinationPercent / 100;
       const angleRadians = Math.atan(inclinationDecimal);
-      const velocityMS = inclinationIngestionData.instantaneousSpeed / 3.6
 
-      const targetPower = this.calculatePower(100, angleRadians, velocityMS)
+      const targetPower = this.calculatePower(100, angleRadians, 10 / 3.6) // Power for velocity of 10 km/h 
 
-      if (this.currentTargetPower != targetPower) {
-        this.toastrService.info("New target power", `${targetPower} W`)
+      if (targetPower != this.currentTargetPower) {
         this.fitnessMachineService.requestControl()
           .then(() => {
-            this.fitnessMachineService.setTargetPower(targetPower)
-          })
-          .then(() => {
+            this.toastrService.error("Power up", `${targetPower}`)
             this.currentTargetPower = targetPower
+            return this.fitnessMachineService.setTargetPower(targetPower)
+          })
+          .catch((error) => {
+            this.toastrService.error("Error", error)
           })
       }
+      /*
+      if (targetPower > this.currentTargetPower) {
+        const diffTargetPower = Math.min(targetPower - this.currentTargetPower, 20)
+        this.fitnessMachineService.requestControl()
+          .then(() => {
+            const newTargetPower = Math.min(this.currentTargetPower + diffTargetPower, 50)
+            this.toastrService.error("Power up", `${newTargetPower}`)
+            this.currentTargetPower = newTargetPower
+            return this.fitnessMachineService.setTargetPower(newTargetPower)
+          })
+          .catch((error) => {
+            this.toastrService.error("Error", error)
+          })
+      } else if (targetPower < this.currentTargetPower) {
+        const diffTargetPower = Math.min(this.currentTargetPower - targetPower, 20)
+        this.fitnessMachineService.requestControl()
+          .then(() => {
+            const newTargetPower = Math.min(this.currentTargetPower - diffTargetPower, 50)
+            this.currentTargetPower = newTargetPower
+            return this.fitnessMachineService.setTargetPower(newTargetPower)
+          })
+          .catch((error) => {
+            this.toastrService.error("Error", error)
+          })
+      }
+      */
 
       this.targetPowerIngestionDataSubject.next({
         ...inclinationIngestionData,
-        targetPower: targetPower
+        targetPower: this.currentTargetPower
       })
     })
   }
@@ -53,10 +79,16 @@ export class TargetPowerIngestionService {
   private calculatePower(mass: number, inclinationRadians: number, velocity: number): number {
     const g = 9.81; // Acceleration due to gravity in m/s^2
     const sinTheta = Math.sin(inclinationRadians);
-    const power = mass * g * sinTheta * velocity;
+    let power = mass * g * sinTheta * velocity;
+
+    if (power < 10) {
+      return 10
+    }
+
+    power = Math.round(power / 5) * 5;
 
     return power;
-}
+  }
 
   connect(): Promise<string> {
     return this.inclinationIngestionService.connect()

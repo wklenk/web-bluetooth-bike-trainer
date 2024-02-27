@@ -14,7 +14,7 @@ export class ResistanceLevelComponent {
 
   ngOnInit() {
     this.targetPowerIngestionService.targetPowerIngestionData$.subscribe((targetPowerIngestionData) => {
-      this.resistanceLevel = targetPowerIngestionData.targetPower
+      this.resistanceLevel = Math.round(targetPowerIngestionData.targetPower)
     });
   }
 }

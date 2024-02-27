@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { ToastrService } from 'ngx-toastr';
 import { Subject } from 'rxjs';
 
 export type IndoorBikeData = {
@@ -48,11 +49,11 @@ type SupportedPowerRange = {
   providedIn: 'root'
 })
 export class FitnessMachineService {
-  
+
   private indoorBikeDataSubject = new Subject<IndoorBikeData>();
   indoorBikeData$ = this.indoorBikeDataSubject.asObservable();
 
-  constructor() { }
+  constructor(private toastrService: ToastrService) { }
 
   private device: BluetoothDevice | undefined
   private server: BluetoothRemoteGATTServer | undefined
@@ -68,6 +69,7 @@ export class FitnessMachineService {
         .then(device => {
           this.device = device
           console.info(device)
+          this.toastrService.info("Device", device.name)
 
           return device.gatt?.connect()
         })
@@ -94,11 +96,12 @@ export class FitnessMachineService {
           if (value) {
             this.supportedResistanceLevelRange = this.parseSupportedResistanceLevelRange(value)
             console.info('Parsed supportedResistanceLevelRange', this.supportedResistanceLevelRange)
+            this.toastrService.info("Resistence levels", JSON.stringify(this.supportedResistanceLevelRange))
           }
 
           return this.service?.getCharacteristic('supported_power_range')
         })
-          .then(characteristic => {
+        .then(characteristic => {
           console.info('supportedPowerRange', characteristic)
 
           return characteristic?.readValue()
@@ -107,6 +110,7 @@ export class FitnessMachineService {
           if (value) {
             this.supportedPowerRange = this.parseSupportedPowerRange(value)
             console.info('Parsed supportedPowerRange', this.supportedPowerRange)
+            this.toastrService.info("Power range", JSON.stringify(this.supportedPowerRange))
           }
 
           return this.service?.getCharacteristic('fitness_machine_control_point')
@@ -123,13 +127,22 @@ export class FitnessMachineService {
         .then(() => {
           this.fitnessMachineControlPointCharacteristic?.addEventListener('characteristicvaluechanged', (event) => {
             const characteristic = event.target as BluetoothRemoteGATTCharacteristic;
-            console.info('fitnessMachineControlPoint event', event)
+
+            this.toastrService.info("Control point event", `${characteristic.value?.getUint8(0)} ${characteristic.value?.getUint8(1)} ${characteristic.value?.getUint8(2)}`)
+            console.info("control point event", characteristic.value)
+
+            console.info("control point event",
+              characteristic.value?.getUint8(0), // Always 0x80
+              characteristic.value?.getUint8(1), // Request Op Code
+              characteristic.value?.getUint8(2), // Result Code. Should be 0x01
+            )
           })
 
           resolve(this.device?.name || 'unknown')
         })
         .catch(error => {
           console.error(error)
+          this.toastrService.error("Error", error)
           reject(error)
         })
     })
@@ -144,6 +157,7 @@ export class FitnessMachineService {
         })
         .catch((error) => {
           this.server?.disconnect()
+          this.toastrService.error("Error", error)
           reject(error)
         })
     })
@@ -165,7 +179,10 @@ export class FitnessMachineService {
 
           resolve()
         })
-        .catch(error => reject(error))
+        .catch(error => {
+          this.toastrService.error("Error", error)
+          reject(error)
+        })
     })
   }
 
@@ -180,7 +197,10 @@ export class FitnessMachineService {
 
           resolve()
         })
-        .catch(error => reject(error))
+        .catch(error => {
+          this.toastrService.error("Error", error)
+          reject(error)
+        })
     })
   }
 
@@ -241,7 +261,11 @@ export class FitnessMachineService {
         + this.supportedPowerRange))
     }
 
-    const setTargetPowerMessage = Int16Array.of(0x05, power)
+    const setTargetPowerMessage = Uint8Array.of(
+      0x05,
+      power & 0xFF,
+      (power >> 8) & 0xFF
+    )
 
     return this.fitnessMachineControlPointCharacteristic.writeValueWithResponse(setTargetPowerMessage)
   }
@@ -286,7 +310,7 @@ export class FitnessMachineService {
       heartRate: 0,
       metabolicEquivalentPresent: false,
       metabolicEquivalent: 0,
-      
+
       // KICKR doesn't send it
       nativeElapsedTimePresent: false,
       nativeElapsedTime: 0,

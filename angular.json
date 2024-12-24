@@ -78,10 +78,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "web-bluetooth-bike-trainer:build:production"
+              "buildTarget": "web-bluetooth-bike-trainer:build:production"
             },
             "development": {
-              "browserTarget": "web-bluetooth-bike-trainer:build:development"
+              "buildTarget": "web-bluetooth-bike-trainer:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -89,7 +89,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "web-bluetooth-bike-trainer:build"
+            "buildTarget": "web-bluetooth-bike-trainer:build"
           }
         },
         "test": {

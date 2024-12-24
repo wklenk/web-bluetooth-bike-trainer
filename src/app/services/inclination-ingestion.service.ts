@@ -10,6 +10,10 @@ export type InclinationIngestionData = {
 @Injectable({
   providedIn: 'root'
 })
+/**
+ * This service keeps track of the inclination of the path based on the distance covered since the start of the workout,
+ * adding the inclination property to the TotalDistanceIngestionData notifications.
+ */
 export class InclinationIngestionService {
 
   private inclinationIngestionDataSubject = new Subject<InclinationIngestionData>();
@@ -35,12 +39,12 @@ export class InclinationIngestionService {
     this.simplifiedElevationData = simplifiedElevationData
   }
 
-  connect(): Promise<string> {
-    return this.totalDistanceIngestionService.connect()
+  async connect(): Promise<void> {
+    await this.totalDistanceIngestionService.connect()
   }
 
-  disconnect(): Promise<void> {
-    return this.totalDistanceIngestionService.disconnect()
+  disconnect(): void {
+    this.totalDistanceIngestionService.disconnect()
   }
 
   private findInclinationByDistance(distance: number): number {

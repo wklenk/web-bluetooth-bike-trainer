@@ -90,11 +90,11 @@ export class TargetPowerIngestionService {
     return power;
   }
 
-  connect(): Promise<string> {
-    return this.inclinationIngestionService.connect()
+  async connect(): Promise<void> {
+    await this.inclinationIngestionService.connect()
   }
 
-  disconnect(): Promise<void> {
-    return this.inclinationIngestionService.disconnect()
+  disconnect(): void {
+    this.inclinationIngestionService.disconnect()
   }
 }

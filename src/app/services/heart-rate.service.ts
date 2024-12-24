@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { ToastrService } from 'ngx-toastr';
 import { Subject } from 'rxjs';
 
 @Injectable({
@@ -9,74 +10,62 @@ export class HeartRateService {
   private heartRateMeasurementSubject = new Subject<number>();
   heartRateMeasurement$ = this.heartRateMeasurementSubject.asObservable();
 
-  constructor() { }
+  constructor(private toastrService: ToastrService) { }
 
   private device: BluetoothDevice | undefined
   private server: BluetoothRemoteGATTServer | undefined
   private heartRateMeasurementCharacteristic: BluetoothRemoteGATTCharacteristic | undefined
 
-  connect(): Promise<string> {
-    return new Promise((resolve, reject) => {
-      navigator.bluetooth.requestDevice({ filters: [{ services: ['heart_rate'] }] })
-        .then(device => {
-          this.device = device
-          console.info(device)
+  async connect(): Promise<string> {
+    // Prompt the user to select a Bluetooth device offering a Heart Rate service.
+    const options: RequestDeviceOptions = {
+      acceptAllDevices: false,
+      filters: [
+        { services: ['heart_rate'] }
+      ]
+    }
 
-          return device.gatt?.connect()
-        })
-        .then(server => {
-          this.server = server
+    this.device = await navigator.bluetooth.requestDevice(options)
+    console.log('Device selected:', this.device);
+    this.toastrService.info("Device", this.device.name)
 
-          return server?.getPrimaryService('heart_rate');
-        })
-        .then(service => {
-          return service?.getCharacteristic('heart_rate_measurement')
-        })
-        .then(characteristic => {
-          this.heartRateMeasurementCharacteristic = characteristic
-          console.info(characteristic)
+    // Connect to the GATT server on the device.
+    this.server = await this.device.gatt?.connect()
 
-          resolve(this.device?.name || 'unknown')
-        })
-        .catch(error => reject(error))
-    })
+    const service = await this.server?.getPrimaryService('heart_rate')
+    this.heartRateMeasurementCharacteristic = await service?.getCharacteristic('heart_rate_measurementata')
+
+    return this.device.name || 'unknown'
   }
 
   disconnect(): void {
     this.server?.disconnect()
   }
 
-  startNotifications(): void {
-    this.heartRateMeasurementCharacteristic?.startNotifications()
-      .then(() => {
-        this.heartRateMeasurementCharacteristic?.addEventListener('characteristicvaluechanged', (event) => {
-          const characteristic = event.target as BluetoothRemoteGATTCharacteristic;
+  async startNotifications(): Promise<void> {
+    await this.heartRateMeasurementCharacteristic?.startNotifications()
+    this.heartRateMeasurementCharacteristic?.addEventListener('characteristicvaluechanged', (event) => {
+      const characteristic = event.target as BluetoothRemoteGATTCharacteristic;
 
-          if (characteristic.value) {
-            this.heartRateMeasurementSubject.next(this.parseHeartRate(characteristic.value))
-          }
-        });
-      })
+      if (characteristic.value) {
+        this.heartRateMeasurementSubject.next(this.parseHeartRate(characteristic.value))
+      }
+    });
   }
 
-  stopNotifications(): void {
-    this.heartRateMeasurementCharacteristic?.stopNotifications()
-      .then(() => {
-        this.heartRateMeasurementCharacteristic?.removeEventListener('characteristicvaluechanged', (event) => {
-          console.info('event', event)
-        });
-      })
+  async stopNotifications(): Promise<void> {
+    await this.heartRateMeasurementCharacteristic?.stopNotifications()
   }
 
   // see https://www.bluetooth.com/specifications/specs/heart-rate-service-1-0/
   private parseHeartRate(data: DataView): number {
-    const flags = data.getUint8(0);
-    const rate16Bits = flags & 0x1;
+    const flags = data.getUint8(0)
+    const rate16Bits = flags & 0x1
 
     if (rate16Bits) {
-      return data.getUint16(1, /*littleEndian=*/ true);
+      return data.getUint16(1, /*littleEndian=*/ true)
     } else {
-      return data.getUint8(1);
+      return data.getUint8(1)
     }
   }
 }

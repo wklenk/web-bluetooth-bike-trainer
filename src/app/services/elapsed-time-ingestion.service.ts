@@ -9,6 +9,10 @@ export type ElapsedTimeIngestionData = {
 @Injectable({
   providedIn: 'root'
 })
+/**
+ * This service keeps track of the elapsed time since the start of the workout,
+ * adding the calculatedElapsedTime property to the IndoorBikeData notifications.
+ */
 export class ElapsedTimeIngestionService {
 
   private elapsedTimeIngestionDataSubject = new Subject<ElapsedTimeIngestionData>();
@@ -28,17 +32,12 @@ export class ElapsedTimeIngestionService {
     })
   }
 
-  connect(): Promise<string> {
-    return new Promise((resolve, reject) => {
-      this.fitnessMachineService.connect()
-        .then((deviceName) => {
-          this.startTime = Date.now()
-          resolve(deviceName)
-        })
-    })
+  async connect(): Promise<void> {
+    await this.fitnessMachineService.connect()
+    this.startTime = Date.now()
   }
 
-  disconnect(): Promise<void> {
+  disconnect(): void {
     return this.fitnessMachineService.disconnect()
   }
 }

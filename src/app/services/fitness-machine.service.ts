@@ -50,186 +50,111 @@ type SupportedPowerRange = {
 })
 export class FitnessMachineService {
 
-  private indoorBikeDataSubject = new Subject<IndoorBikeData>();
-  indoorBikeData$ = this.indoorBikeDataSubject.asObservable();
+  private indoorBikeDataSubject = new Subject<IndoorBikeData>()
+  indoorBikeData$ = this.indoorBikeDataSubject.asObservable()
 
   constructor(private toastrService: ToastrService) { }
 
   private device: BluetoothDevice | undefined
   private server: BluetoothRemoteGATTServer | undefined
-  private service: BluetoothRemoteGATTService | undefined
   private indoorBikeDataCharacteristic: BluetoothRemoteGATTCharacteristic | undefined
   private fitnessMachineControlPointCharacteristic: BluetoothRemoteGATTCharacteristic | undefined
   public supportedResistanceLevelRange: SupportedResistanceLevelRange | undefined
   public supportedPowerRange: SupportedPowerRange | undefined
 
-  connect(): Promise<string> {
-    return new Promise((resolve, reject) => {
-      navigator.bluetooth.requestDevice({ filters: [{ services: ['fitness_machine'] }] })
-        .then(device => {
-          this.device = device
-          console.info(device)
-          this.toastrService.info("Device", device.name)
+  async connect(): Promise<void> {
+    try {
+      // Prompt the user to select a Bluetooth device offering a Fitness Machine service.
+      const options: RequestDeviceOptions = {
+        acceptAllDevices: false,
+        filters: [
+          { services: ['fitness_machine'] }
+        ]
+      }
 
-          return device.gatt?.connect()
-        })
-        .then(server => {
-          this.server = server
+      this.device = await navigator.bluetooth.requestDevice(options)
+      console.log('Device selected:', this.device);
+      this.toastrService.info("Device", this.device.name)
 
-          return server?.getPrimaryService('fitness_machine');
-        })
-        .then(service => {
-          this.service = service
-          return this.service?.getCharacteristic('indoor_bike_data')
-        })
-        .then(characteristic => {
-          this.indoorBikeDataCharacteristic = characteristic
-          console.info('indoorBikeData', characteristic)
+      // Connect to the GATT server on the device.
+      this.server = await this.device.gatt?.connect()
 
-          return this.service?.getCharacteristic('supported_resistance_level_range')
-        })
-        .then(characteristic => {
-          console.info('supportedResistanceLevelRange', characteristic)
-          return characteristic?.readValue()
-        })
-        .then(value => {
-          if (value) {
-            this.supportedResistanceLevelRange = this.parseSupportedResistanceLevelRange(value)
-            console.info('Parsed supportedResistanceLevelRange', this.supportedResistanceLevelRange)
-            this.toastrService.info("Resistence levels", JSON.stringify(this.supportedResistanceLevelRange))
-          }
+      const service = await this.server?.getPrimaryService('fitness_machine')
+      this.indoorBikeDataCharacteristic = await service?.getCharacteristic('indoor_bike_data')
+      this.fitnessMachineControlPointCharacteristic = await service?.getCharacteristic('fitness_machine_control_point')
 
-          return this.service?.getCharacteristic('supported_power_range')
-        })
-        .then(characteristic => {
-          console.info('supportedPowerRange', characteristic)
+      const supportedResistanceLevelRangeCharacteristic = await service?.getCharacteristic('supported_resistance_level_range')
+      const supportedResistanceLevelRangeValue = await supportedResistanceLevelRangeCharacteristic?.readValue()
+      if (supportedResistanceLevelRangeValue) {
+        this.supportedResistanceLevelRange = this.parseSupportedResistanceLevelRange(supportedResistanceLevelRangeValue)
+      }
 
-          return characteristic?.readValue()
-        })
-        .then(value => {
-          if (value) {
-            this.supportedPowerRange = this.parseSupportedPowerRange(value)
-            console.info('Parsed supportedPowerRange', this.supportedPowerRange)
-            this.toastrService.info("Power range", JSON.stringify(this.supportedPowerRange))
-          }
+      const supportedPowerRangeCharacteristic = await service?.getCharacteristic('supported_power_range')
+      const supportedPowerRangeValue = await supportedPowerRangeCharacteristic?.readValue()
+      if (supportedPowerRangeValue) {
+        this.supportedPowerRange = this.parseSupportedPowerRange(supportedPowerRangeValue)
+      }
 
-          return this.service?.getCharacteristic('fitness_machine_control_point')
-        })
-        .then(characteristic => {
-          this.fitnessMachineControlPointCharacteristic = characteristic
-          console.info('fitnessMachineControlPoint', characteristic)
+      // Enable notifications
+      await this.fitnessMachineControlPointCharacteristic?.startNotifications();
 
-          return this.reset()
-        })
-        .then(() => {
-          return this.fitnessMachineControlPointCharacteristic?.startNotifications()
-        })
-        .then(() => {
-          this.fitnessMachineControlPointCharacteristic?.addEventListener('characteristicvaluechanged', (event) => {
-            const characteristic = event.target as BluetoothRemoteGATTCharacteristic;
+      // Add event listener for notifications
+      this.fitnessMachineControlPointCharacteristic?.addEventListener('characteristicvaluechanged', (event: Event) => {
+        const value = (event.target as BluetoothRemoteGATTCharacteristic).value;
+        if (value) {
+          const decodedValue = new TextDecoder().decode(value); // e.g. "0x80 RequestOpCode ResultCode"
+          console.log('FMCP value change:', decodedValue);
+          this.toastrService.info("FMCP value change", `${decodedValue}`)
+        } else {
+          console.log('FMCP: Empty notification received');
+        }
+      });
 
-            this.toastrService.info("Control point event", `${characteristic.value?.getUint8(0)} ${characteristic.value?.getUint8(1)} ${characteristic.value?.getUint8(2)}`)
-            console.info("control point event", characteristic.value)
+      await this.reset()
+    } catch (error) {
+      console.error('Error connecting and setting up FitnessMachineService:', error);
+    }
+  }
 
-            console.info("control point event",
-              characteristic.value?.getUint8(0), // Always 0x80
-              characteristic.value?.getUint8(1), // Request Op Code
-              characteristic.value?.getUint8(2), // Result Code. Should be 0x01
-            )
-          })
+  disconnect(): void {
+    if (this.device && this.device.gatt?.connected) {
+      this.device.gatt.disconnect();
+      console.log('Device disconnected');
+    } else {
+      console.log('No device connected');
+    }
+  }
 
-          resolve(this.device?.name || 'unknown')
-        })
-        .catch(error => {
-          console.error(error)
-          this.toastrService.error("Error", error)
-          reject(error)
-        })
+  async startNotifications(): Promise<void> {
+    await this.indoorBikeDataCharacteristic?.startNotifications()
+    this.indoorBikeDataCharacteristic?.addEventListener('characteristicvaluechanged', (event) => {
+      const characteristic = event.target as BluetoothRemoteGATTCharacteristic;
+
+      if (characteristic.value) {
+        const indoorBikeData = this.parseIndoorBikeData(characteristic.value)
+        this.indoorBikeDataSubject.next(indoorBikeData)
+      }
     })
   }
 
-  disconnect(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.reset()
-        .then(() => {
-          this.server?.disconnect()
-          resolve()
-        })
-        .catch((error) => {
-          this.server?.disconnect()
-          this.toastrService.error("Error", error)
-          reject(error)
-        })
-    })
-  }
-
-  startNotifications(): Promise<void> {
-    return new Promise((resolve, reject) => {
-
-      this.indoorBikeDataCharacteristic?.startNotifications()
-        .then(() => {
-          this.indoorBikeDataCharacteristic?.addEventListener('characteristicvaluechanged', (event) => {
-            const characteristic = event.target as BluetoothRemoteGATTCharacteristic;
-
-            if (characteristic.value) {
-              const indoorBikeData = this.parseIndoorBikeData(characteristic.value)
-              this.indoorBikeDataSubject.next(indoorBikeData)
-            }
-          });
-
-          resolve()
-        })
-        .catch(error => {
-          this.toastrService.error("Error", error)
-          reject(error)
-        })
-    })
-  }
-
-  stopNotifications(): Promise<void> {
-    return new Promise((resolve, reject) => {
-
-      this.indoorBikeDataCharacteristic?.stopNotifications()
-        .then(() => {
-          this.indoorBikeDataCharacteristic?.removeEventListener('characteristicvaluechanged', (event) => {
-            console.info('event', event)
-          });
-
-          resolve()
-        })
-        .catch(error => {
-          this.toastrService.error("Error", error)
-          reject(error)
-        })
-    })
+  async stopNotifications(): Promise<void> {
+      await this.indoorBikeDataCharacteristic?.stopNotifications()
   }
 
   // Initiates the procedure to request the control of a fitness machine.
-  requestControl(): Promise<void> {
-    if (!this.fitnessMachineControlPointCharacteristic) {
-      return Promise.reject(new Error('No fitness_machine_control_point characteristic present.'))
-    }
-
+  async requestControl(): Promise<void> {
     const requestControlMessage = Uint8Array.of(0x00);
-    return this.fitnessMachineControlPointCharacteristic.writeValueWithResponse(requestControlMessage)
+    await this.fitnessMachineControlPointCharacteristic?.writeValue(requestControlMessage)
   }
 
   // Initiates the procedure to reset the controllable settings of a fitness machine.
-  reset(): Promise<void> {
-    if (!this.fitnessMachineControlPointCharacteristic) {
-      return Promise.reject(new Error('No fitness_machine_control_point characteristic present.'))
-    }
-
+  async reset(): Promise<void> {
     const resetMessage = Uint8Array.of(0x01);
-    return this.fitnessMachineControlPointCharacteristic.writeValueWithResponse(resetMessage)
+    await this.fitnessMachineControlPointCharacteristic?.writeValue(resetMessage)
   }
 
   // Initiate the procedure to set the target resistance level of the fitness machine.
-  setTargetResistanceLevel(resistanceLevel: number): Promise<void> {
-    if (!this.fitnessMachineControlPointCharacteristic) {
-      return Promise.reject(new Error('No fitness_machine_control_point characteristic present.'))
-    }
-
+  async setTargetResistanceLevel(resistanceLevel: number): Promise<void> {
     if (!this.supportedResistanceLevelRange) {
       return Promise.reject(new Error('No supported resistance level range present.'))
     }
@@ -241,16 +166,11 @@ export class FitnessMachineService {
     }
 
     const setTargetResistanceLevelMessage = Uint8Array.of(0x04, resistanceLevel * 10)
-
-    return this.fitnessMachineControlPointCharacteristic.writeValueWithResponse(setTargetResistanceLevelMessage)
+    await this.fitnessMachineControlPointCharacteristic?.writeValue(setTargetResistanceLevelMessage)
   }
 
   // Initiate the procedure to set the target power of the fitness machine.
-  setTargetPower(power: number): Promise<void> {
-    if (!this.fitnessMachineControlPointCharacteristic) {
-      return Promise.reject(new Error('No fitness_machine_control_point characteristic present.'))
-    }
-
+  async setTargetPower(power: number): Promise<void> {
     if (!this.supportedPowerRange) {
       return Promise.reject(new Error('No supported power range present.'))
     }
@@ -267,7 +187,7 @@ export class FitnessMachineService {
       (power >> 8) & 0xFF
     )
 
-    return this.fitnessMachineControlPointCharacteristic.writeValueWithResponse(setTargetPowerMessage)
+    await this.fitnessMachineControlPointCharacteristic?.writeValueWithResponse(setTargetPowerMessage)
   }
 
   // See https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.indoor_bike_data.xml

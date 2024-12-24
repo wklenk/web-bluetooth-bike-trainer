@@ -9,6 +9,10 @@ export type TotalDistanceIngestionData = {
 @Injectable({
   providedIn: 'root'
 })
+/**
+ * This service keeps track of the total distance covered since the start of the workout,
+ * adding the calculatedTotalDistance property to the ElapsedTimeIngestionData notifications.
+ */
 export class TotalDistanceIngestionService {
 
   private totalDistanceIngestionDataSubject = new Subject<TotalDistanceIngestionData>();
@@ -33,12 +37,11 @@ export class TotalDistanceIngestionService {
     })
   }
 
-  connect(): Promise<string> {
-    return this.elapsedTimeIngestionService.connect()
+  async connect(): Promise<void> {
+    await this.elapsedTimeIngestionService.connect()
   }
 
-  disconnect(): Promise<void> {
-    return this.elapsedTimeIngestionService.disconnect()
+  disconnect(): void {
+   this.elapsedTimeIngestionService.disconnect()
   }
-
 }

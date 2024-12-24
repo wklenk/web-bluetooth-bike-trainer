@@ -22,13 +22,9 @@ export class HeartRateComponent implements OnInit {
     });
   }
 
-  connect(): void {
-    this.heartRateService.connect()
-      .then(deviceName => {
-        this.deviceName = deviceName
-
-        this.heartRateService.startNotifications()
-      })
+  async connect(): Promise<void> {
+    this.deviceName = await this.heartRateService.connect()
+    await this.heartRateService.startNotifications()
   }
 
   disconnect(): void {

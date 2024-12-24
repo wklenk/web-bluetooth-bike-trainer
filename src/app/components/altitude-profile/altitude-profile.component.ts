@@ -2,7 +2,6 @@ import { AfterViewInit, Component, EventEmitter, HostListener, Input, OnChanges,
 import * as L from 'leaflet';
 import { Point } from 'leaflet';
 import 'leaflet-gpx'; // Import the Leaflet GPX plugin
-import { FitnessMachineService } from 'src/app/services/fitness-machine.service';
 import { InclinationIngestionService } from 'src/app/services/inclination-ingestion.service';
 import { StorageService } from 'src/app/services/storage.service';
 
@@ -22,8 +21,8 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
 
   @Input() isSimulationStarted: boolean = false
 
-  // Events the current distance index on the track based on the marker in this altitude profile
-  @Output() distanceEvent = new EventEmitter<number>();
+  // Emits the current distance index on the track based on the marker in this altitude profile
+  @Output() positionChangeEvent = new EventEmitter<number>();
 
   private viewportWidth: number = 0
 
@@ -151,7 +150,7 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
 
       let distanceAndElevation = this.toDistanceAndElevation(new Point(this.mouseX, 0))
 
-      this.distanceEvent.emit(distanceAndElevation.distance)
+      this.positionChangeEvent.emit(distanceAndElevation.distance)
     }
   }
 

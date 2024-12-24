@@ -1,8 +1,12 @@
 <mat-toolbar color="primary">
   <span>{{title}}</span>
   <span class="toolbar-spacer"></span>
-  <input type="file" (change)="onFileSelected($event)" />
-  <button mat-raised-button color="primary" (click)="parseGpxFile()">Import GPX Track</button>
+  <app-elapsed-time></app-elapsed-time>
+  <span class="toolbar-spacer"></span>
+  <app-distance></app-distance>
+  <span class="toolbar-spacer"></span>
+  <input *ngIf="!isSimulationStarted" type="file" (change)="onFileSelected($event)" />
+  <button mat-raised-button color="primary" *ngIf="!isSimulationStarted" (click)="parseGpxFile()">Import GPX Track</button>
   <button mat-raised-button color="primary" *ngIf="!isSimulationStarted" (click)="startSimulation()">Start Simulation</button>
   <button mat-raised-button color="primary" *ngIf="isSimulationStarted" (click)="stopSimulation()">Stop Simulation</button>
 </mat-toolbar>
@@ -11,44 +15,12 @@
 <div class="map-container">
   <div id="map"></div>
 </div>
-<!--
-    <mat-stepper *ngIf="!isSimulationStarted" #stepper class="stepper-container">
-      <mat-step>
-        <ng-template matStepLabel>Import GPX Track</ng-template>
-        <input type="file" (change)="onFileSelected($event)" />
-        <button color="primary" (click)="parseGpxFile()">Import GPX Track</button>
-        <div>
-          <button mat-button matStepperNext>Next</button>
-        </div>
-
-      </mat-step>
-      <mat-step>
-        <ng-template matStepLabel>Simplify Altitude Profile</ng-template>
-        <app-altitude-profile [leafletGpx]="leafletGpx" (distanceEvent)="handleDistanceEvent($event)"></app-altitude-profile>
-        <div>
-          <button mat-button matStepperPrevious>Back</button>
-          <button mat-button matStepperNext>Next</button>
-        </div>
-      </mat-step>
-      <mat-step>
-        <ng-template matStepLabel>Done</ng-template>
-        <p>You are now done.</p>
-        <div>
-          <button mat-button matStepperPrevious>Back</button>
-          <button mat-button (click)="stepper.reset()">Reset</button>
-          <button mat-button (click)="startSimulation()">Close and start simulation</button>
-        </div>
-      </mat-step>
-    </mat-stepper>
-  -->
-<div *ngIf="isSimulationStarted"  class="container">
+<div class="container">
   <app-heart-rate></app-heart-rate>
   <app-speed></app-speed>
   <app-cadence></app-cadence>
   <app-power></app-power>
-  <app-elapsed-time></app-elapsed-time>
-  <app-distance></app-distance>
   <app-inclination></app-inclination>
 </div>
-<app-altitude-profile class="fullWidthOnBottom" [leafletGpx]="leafletGpx" [isSimulationStarted]="isSimulationStarted"  (distanceEvent)="handleDistanceEvent($event)"></app-altitude-profile>
+<app-altitude-profile class="fullWidthOnBottom" [leafletGpx]="leafletGpx" [isSimulationStarted]="isSimulationStarted"  (positionChangeEvent)="handlePositionChangeEvent($event)"></app-altitude-profile>
 

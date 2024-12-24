@@ -32,7 +32,7 @@
               {
                 "glob": "**/*",
                 "input": "./node_modules/leaflet/dist/images",
-                "output": "/"
+                "output": "/media"
               },
               {
                 "glob": "**/*.png",

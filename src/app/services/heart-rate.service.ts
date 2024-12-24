@@ -33,28 +33,36 @@ export class HeartRateService {
     this.server = await this.device.gatt?.connect()
 
     const service = await this.server?.getPrimaryService('heart_rate')
-    this.heartRateMeasurementCharacteristic = await service?.getCharacteristic('heart_rate_measurementata')
+    this.heartRateMeasurementCharacteristic = await service?.getCharacteristic('heart_rate_measurement')
 
     return this.device.name || 'unknown'
   }
 
   disconnect(): void {
-    this.server?.disconnect()
+    if (this.device && this.device.gatt?.connected) {
+      this.device.gatt.disconnect();
+      console.log('Device disconnected');
+    } else {
+      console.log('No device connected');
+    }
   }
 
   async startNotifications(): Promise<void> {
     await this.heartRateMeasurementCharacteristic?.startNotifications()
-    this.heartRateMeasurementCharacteristic?.addEventListener('characteristicvaluechanged', (event) => {
-      const characteristic = event.target as BluetoothRemoteGATTCharacteristic;
-
-      if (characteristic.value) {
-        this.heartRateMeasurementSubject.next(this.parseHeartRate(characteristic.value))
-      }
-    });
+    this.heartRateMeasurementCharacteristic?.addEventListener('characteristicvaluechanged', event => this.onHeartRateMeasuermentChanged(event))
   }
 
   async stopNotifications(): Promise<void> {
     await this.heartRateMeasurementCharacteristic?.stopNotifications()
+    this.heartRateMeasurementCharacteristic?.removeEventListener('characteristicvaluechanged', event => this.onHeartRateMeasuermentChanged(event))
+  }
+
+  private onHeartRateMeasuermentChanged(event: Event) {
+    const characteristic = event.target as BluetoothRemoteGATTCharacteristic;
+
+    if (characteristic.value) {
+      this.heartRateMeasurementSubject.next(this.parseHeartRate(characteristic.value))
+    }
   }
 
   // see https://www.bluetooth.com/specifications/specs/heart-rate-service-1-0/

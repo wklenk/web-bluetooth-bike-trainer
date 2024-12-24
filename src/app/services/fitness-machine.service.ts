@@ -127,12 +127,12 @@ export class FitnessMachineService {
   }
 
   async startNotifications(): Promise<void> {
-    this.indoorBikeDataCharacteristic?.addEventListener('characteristicvaluechanged', this.onIndoorBikeDataChanged)
+    this.indoorBikeDataCharacteristic?.addEventListener('characteristicvaluechanged', event => this.onIndoorBikeDataChanged(event))
     await this.indoorBikeDataCharacteristic?.startNotifications()
   }
 
   async stopNotifications(): Promise<void> {
-    this.indoorBikeDataCharacteristic?.removeEventListener('characteristicvaluechanged', this.onIndoorBikeDataChanged)
+    this.indoorBikeDataCharacteristic?.removeEventListener('characteristicvaluechanged', event => this.onIndoorBikeDataChanged(event))
     await this.indoorBikeDataCharacteristic?.stopNotifications()
   }
 

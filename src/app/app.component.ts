@@ -27,6 +27,7 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   title = 'Web Bluetooth Bike Trainer';
   inProgress = false
+
   leafletGpx: L.GPX | undefined
 
   selectedFile: File | null = null
@@ -88,7 +89,7 @@ export class AppComponent implements AfterViewInit, OnInit {
   ngOnInit() {
     this.inclinationIngestionService.inclinationIngestionData$.subscribe((inclinationIngestionData) => {
       // Update marker on track
-      this.handleDistanceEvent(inclinationIngestionData.calculatedTotalDistance)
+      this.handlePositionChangeEvent(inclinationIngestionData.calculatedTotalDistance)
     });
   }
 
@@ -294,7 +295,7 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   // Move a marker along the trace based on the position of the mouse in the
   // altitude profile component
-  handleDistanceEvent(distance: number): void {
+  handlePositionChangeEvent(distance: number): void {
     // Update marker on
     if (this.elevationPoints.length > 0) {
       this.marker?.setLatLng(this.findClosestPointByDistance(distance))

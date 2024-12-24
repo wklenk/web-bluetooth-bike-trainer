@@ -12,6 +12,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
+import { NgxGaugeModule } from 'ngx-gauge';
 import { HeartRateComponent } from './components/heart-rate/heart-rate.component';
 import { AltitudeProfileComponent } from './components/altitude-profile/altitude-profile.component';
 import { SpeedComponent } from './components/speed/speed.component';
@@ -37,6 +38,7 @@ import { InclinationComponent } from './components/inclination/inclination.compo
     BrowserModule,
     BrowserAnimationsModule,
     ToastrModule.forRoot(),
+    NgxGaugeModule,
     MatProgressBarModule,
     MatIconModule,
     MatButtonModule,

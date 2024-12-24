@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { HeartRateService } from 'src/app/services/heart-rate.service';
 
 const default_heart_rate = 0;
-const default_device_name = "unknown"
+const default_device_name = "Heart Rate"
 
 @Component({
   selector: 'app-heart-rate',

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { ToastrService } from 'ngx-toastr';
 import { Subject } from 'rxjs';
+import { ToastrService } from 'ngx-toastr';
 
 export type IndoorBikeData = {
   instantaneousSpeedPresent: boolean,
@@ -102,7 +102,7 @@ export class FitnessMachineService {
       this.fitnessMachineControlPointCharacteristic?.addEventListener('characteristicvaluechanged', (event: Event) => {
         const value = (event.target as BluetoothRemoteGATTCharacteristic).value;
         if (value) {
-          const decodedValue = new TextDecoder().decode(value); // e.g. "0x80 RequestOpCode ResultCode"
+          const decodedValue = value.getUint8(0) + " " + value.getUint8(1) + " " + value.getUint8(2)
           console.log('FMCP value change:', decodedValue);
           this.toastrService.info("FMCP value change", `${decodedValue}`)
         } else {
@@ -111,6 +111,7 @@ export class FitnessMachineService {
       });
 
       await this.reset()
+      await this.setWheelCircumference(2200)
     } catch (error) {
       console.error('Error connecting and setting up FitnessMachineService:', error);
     }
@@ -126,34 +127,36 @@ export class FitnessMachineService {
   }
 
   async startNotifications(): Promise<void> {
+    this.indoorBikeDataCharacteristic?.addEventListener('characteristicvaluechanged', this.onIndoorBikeDataChanged)
     await this.indoorBikeDataCharacteristic?.startNotifications()
-    this.indoorBikeDataCharacteristic?.addEventListener('characteristicvaluechanged', (event) => {
-      const characteristic = event.target as BluetoothRemoteGATTCharacteristic;
-
-      if (characteristic.value) {
-        const indoorBikeData = this.parseIndoorBikeData(characteristic.value)
-        this.indoorBikeDataSubject.next(indoorBikeData)
-      }
-    })
   }
 
   async stopNotifications(): Promise<void> {
-      await this.indoorBikeDataCharacteristic?.stopNotifications()
+    this.indoorBikeDataCharacteristic?.removeEventListener('characteristicvaluechanged', this.onIndoorBikeDataChanged)
+    await this.indoorBikeDataCharacteristic?.stopNotifications()
   }
 
-  // Initiates the procedure to request the control of a fitness machine.
+  private onIndoorBikeDataChanged(event: Event): void {
+    const characteristic = event.target as BluetoothRemoteGATTCharacteristic;
+    if (characteristic.value) {
+      const indoorBikeData = this.parseIndoorBikeData(characteristic.value);
+      this.indoorBikeDataSubject.next(indoorBikeData);
+    }
+  }
+
+  // Initiates the procedure to request the control.
   async requestControl(): Promise<void> {
     const requestControlMessage = Uint8Array.of(0x00);
     await this.fitnessMachineControlPointCharacteristic?.writeValue(requestControlMessage)
   }
 
-  // Initiates the procedure to reset the controllable settings of a fitness machine.
+  // Initiates the procedure to reset the controllable settings.
   async reset(): Promise<void> {
     const resetMessage = Uint8Array.of(0x01);
     await this.fitnessMachineControlPointCharacteristic?.writeValue(resetMessage)
   }
 
-  // Initiate the procedure to set the target resistance level of the fitness machine.
+  // Initiate the procedure to set the target resistance level.
   async setTargetResistanceLevel(resistanceLevel: number): Promise<void> {
     if (!this.supportedResistanceLevelRange) {
       return Promise.reject(new Error('No supported resistance level range present.'))
@@ -169,7 +172,7 @@ export class FitnessMachineService {
     await this.fitnessMachineControlPointCharacteristic?.writeValue(setTargetResistanceLevelMessage)
   }
 
-  // Initiate the procedure to set the target power of the fitness machine.
+  // Initiate the procedure to set the target power.
   async setTargetPower(power: number): Promise<void> {
     if (!this.supportedPowerRange) {
       return Promise.reject(new Error('No supported power range present.'))
@@ -190,6 +193,39 @@ export class FitnessMachineService {
     await this.fitnessMachineControlPointCharacteristic?.writeValueWithResponse(setTargetPowerMessage)
   }
 
+  // Initiate the procedure to set the Indoor Bike SimulationParameters.
+  async setIndoorBikeSimulationParameters(windSpeed: number, grade: number, crr: number, cw: number): Promise<void> {
+    const scaledWindSpeed = Math.round(windSpeed * 1000)
+    const scaledGrade = Math.round(grade * 100)
+    const scaledCrr = Math.round(crr * 10000)
+    const scaledCw = Math.round(cw * 100)
+
+    const setIndoorBikeSimulationParametersMessage = Uint8Array.of(
+      0x11,
+      scaledWindSpeed & 0xFF,
+      (scaledWindSpeed >> 8) & 0xFF,
+      scaledGrade & 0xFF,
+      (scaledGrade >> 8) & 0xFF,
+      scaledCrr & 0xFF,
+      scaledCw & 0xFF
+    )
+
+    await this.fitnessMachineControlPointCharacteristic?.writeValueWithResponse(setIndoorBikeSimulationParametersMessage)
+  }
+
+// Initiate the procedure to set the Wheel Circumference.
+async setWheelCircumference(circumference: number): Promise<void> {
+  const scaledCircumference = Math.round(circumference * 10)
+
+  const setWheelCircumferenceMessage = Uint8Array.of(
+    0x12,
+    scaledCircumference & 0xFF,
+    (scaledCircumference >> 8) & 0xFF
+  )
+
+  await this.fitnessMachineControlPointCharacteristic?.writeValueWithResponse(setWheelCircumferenceMessage)
+}
+
   // See https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.indoor_bike_data.xml
   private parseIndoorBikeData(data: DataView): IndoorBikeData {
 
@@ -209,7 +245,7 @@ export class FitnessMachineService {
     const nativeElapsedTimePresent = flags & 0x0800
     const remainingTimePresent = flags & 0x1000
 
-    var result: IndoorBikeData = {
+    const result: IndoorBikeData = {
       instantaneousSpeedPresent: false,
       instantaneousSpeed: 0,
       averageSpeedPresent: false,
@@ -322,13 +358,14 @@ export class FitnessMachineService {
       index += 2
     }
 
+    console.log('IndoorBikeData:', result)
     return result
   }
 
   // See https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.supported_resistance_level_range.xml
   private parseSupportedResistanceLevelRange(data: DataView): SupportedResistanceLevelRange {
 
-    var result: SupportedResistanceLevelRange = {
+    const result: SupportedResistanceLevelRange = {
       minimumResistanceLevel: 0,
       maximumResistanceLevel: 0,
       minimumIncrement: 0
@@ -349,7 +386,7 @@ export class FitnessMachineService {
   // See https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.supported_power_range.xml
   private parseSupportedPowerRange(data: DataView): SupportedPowerRange {
 
-    var result: SupportedPowerRange = {
+    const result: SupportedPowerRange = {
       minimumPower: 0,
       maximumPower: 0,
       minimumIncrement: 0

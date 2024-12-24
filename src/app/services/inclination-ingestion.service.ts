@@ -2,6 +2,8 @@ import { Injectable, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { DistanceAndElevation } from '../components/altitude-profile/altitude-profile.component';
 import { TotalDistanceIngestionData, TotalDistanceIngestionService } from './total-distance-ingestion.service';
+import { ToastrService } from 'ngx-toastr';
+import { FitnessMachineService } from './fitness-machine.service';
 
 export type InclinationIngestionData = {
   inclination: number // percent
@@ -20,12 +22,26 @@ export class InclinationIngestionService {
   inclinationIngestionData$ = this.inclinationIngestionDataSubject.asObservable();
 
   simplifiedElevationData: DistanceAndElevation[] = []
+  private currentInclination: number | undefined = undefined
 
-  constructor(private totalDistanceIngestionService: TotalDistanceIngestionService) {
+  constructor(
+    private toastrService: ToastrService,
+    private totalDistanceIngestionService: TotalDistanceIngestionService,
+    private fitnessMachineService: FitnessMachineService,   
+  ) {
     this.totalDistanceIngestionService.totalDistanceIngestionData$.subscribe((totalDistanceIngestionData) => {
 
       // Based on the distance, find the current elevation
       const inclination = this.findInclinationByDistance(totalDistanceIngestionData.calculatedTotalDistance)
+
+      if (this.currentInclination != inclination) {
+        this.currentInclination = inclination
+
+        this.fitnessMachineService.setIndoorBikeSimulationParameters(0, inclination, 0, 0)
+          .then(() => {
+            this.toastrService.info("Inclination set to " + inclination + "%")
+          })
+      }
 
       this.inclinationIngestionDataSubject.next({
         ...totalDistanceIngestionData,

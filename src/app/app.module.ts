@@ -20,7 +20,6 @@ import { PowerComponent } from './components/power/power.component';
 import { DistanceComponent } from './components/distance/distance.component';
 import { ElapsedTimeComponent } from './components/elapsed-time/elapsed-time.component';
 import { InclinationComponent } from './components/inclination/inclination.component';
-import { ResistanceLevelComponent } from './components/resistance-level/resistance-level.component';
 
 @NgModule({
   declarations: [
@@ -32,8 +31,7 @@ import { ResistanceLevelComponent } from './components/resistance-level/resistan
     PowerComponent,
     DistanceComponent,
     ElapsedTimeComponent,
-    InclinationComponent,
-    ResistanceLevelComponent,
+    InclinationComponent
   ],
   imports: [
     BrowserModule,

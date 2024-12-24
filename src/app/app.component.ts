@@ -6,7 +6,7 @@ import * as L from 'leaflet';
 import { GPX } from 'leaflet';
 import 'leaflet-gpx'; // Import the Leaflet GPX plugin
 import { StorageService } from './services/storage.service';
-import { TargetPowerIngestionService } from './services/target-power-ingestion.service';
+import { InclinationIngestionService } from './services/inclination-ingestion.service';
 import { FitnessMachineService } from './services/fitness-machine.service';
 import { ToastContainerDirective, ToastrService } from 'ngx-toastr';
 
@@ -40,14 +40,14 @@ export class AppComponent implements AfterViewInit, OnInit {
   constructor(
     private toastrService: ToastrService,
     private storageService: StorageService,
-    private resistanceLevelIngestionService: TargetPowerIngestionService,
+    private inclinationIngestionService: InclinationIngestionService,
     private fitnessMachineService: FitnessMachineService
   ) { }
 
   startSimulation(): void {
     if (!this.isSimulationStarted) {
       this.inProgress = true
-      this.resistanceLevelIngestionService.connect()
+      this.inclinationIngestionService.connect()
         .then(() => {
           this.fitnessMachineService.startNotifications()
         })
@@ -70,7 +70,7 @@ export class AppComponent implements AfterViewInit, OnInit {
 
       this.fitnessMachineService.stopNotifications()
         .then(() => {
-          this.resistanceLevelIngestionService.disconnect()
+          this.inclinationIngestionService.disconnect()
         })
         .then(() => {
           this.toastrService.info("Info", "Disconnected")
@@ -86,9 +86,9 @@ export class AppComponent implements AfterViewInit, OnInit {
   }
 
   ngOnInit() {
-    this.resistanceLevelIngestionService.targetPowerIngestionData$.subscribe((resistanceLevelIngestionData) => {
+    this.inclinationIngestionService.inclinationIngestionData$.subscribe((inclinationIngestionData) => {
       // Update marker on track
-      this.handleDistanceEvent(resistanceLevelIngestionData.calculatedTotalDistance)
+      this.handleDistanceEvent(inclinationIngestionData.calculatedTotalDistance)
     });
   }
 

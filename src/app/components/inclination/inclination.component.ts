@@ -3,8 +3,20 @@ import { InclinationIngestionService } from 'src/app/services/inclination-ingest
 
 @Component({
   selector: 'app-inclination',
-  templateUrl: './inclination.component.html',
-  styleUrls: ['./inclination.component.scss']
+  template: `
+    <ngx-gauge
+        [value]="inclination"
+        [min]="-20"
+        [max]="20"
+        [type]="'arch'"
+        [thick]="10"
+        [cap]="'round'"
+        [label]="'Inclination'"
+        [append]="'%'"
+        [foregroundColor]="'#ff0000'"
+        >
+    </ngx-gauge>  
+  `
 })
 export class InclinationComponent {
 

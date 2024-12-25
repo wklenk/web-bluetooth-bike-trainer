@@ -3,8 +3,20 @@ import { FitnessMachineService } from 'src/app/services/fitness-machine.service'
 
 @Component({
   selector: 'app-cadence',
-  templateUrl: './cadence.component.html',
-  styleUrls: ['./cadence.component.scss']
+  template: `
+    <ngx-gauge
+        [value]="cadence"
+        [min]="0"
+        [max]="200"
+        [type]="'arch'"
+        [thick]="10"
+        [cap]="'round'"
+        [label]="'Cadence'"
+        [append]="'RPM'"
+        [foregroundColor]="'#ff0000'"
+        >
+    </ngx-gauge>  
+  `
 })
 export class CadenceComponent {
 

@@ -3,8 +3,20 @@ import { FitnessMachineService } from 'src/app/services/fitness-machine.service'
 
 @Component({
   selector: 'app-speed',
-  templateUrl: './speed.component.html',
-  styleUrls: ['./speed.component.scss']
+  template: `
+    <ngx-gauge
+        [value]="speed"
+        [min]="0"
+        [max]="100"
+        [type]="'arch'"
+        [thick]="10"
+        [cap]="'round'"
+        [label]="'Speed'"
+        [append]="'km/h'"
+        [foregroundColor]="'#ff0000'"
+        >
+    </ngx-gauge>  
+  `
 })
 export class SpeedComponent {
   speed: number = 0

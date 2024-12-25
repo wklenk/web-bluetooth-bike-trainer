@@ -3,8 +3,9 @@ import { TotalDistanceIngestionService } from 'src/app/services/total-distance-i
 
 @Component({
   selector: 'app-distance',
-  templateUrl: './distance.component.html',
-  styleUrls: ['./distance.component.scss']
+  template: `
+    {{ distance }} m
+  `
 })
 export class DistanceComponent {
   distance: number = 0

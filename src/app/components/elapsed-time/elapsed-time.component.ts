@@ -3,8 +3,9 @@ import { ElapsedTimeIngestionService } from 'src/app/services/elapsed-time-inges
 
 @Component({
   selector: 'app-elapsed-time',
-  templateUrl: './elapsed-time.component.html',
-  styleUrls: ['./elapsed-time.component.scss']
+  template: `
+  {{ elapsedTime }}
+  `
 })
 export class ElapsedTimeComponent {
   elapsedTime: string = "00:00:00";

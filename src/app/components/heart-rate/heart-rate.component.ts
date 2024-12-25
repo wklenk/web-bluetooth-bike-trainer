@@ -6,8 +6,28 @@ const default_device_name = "Heart Rate"
 
 @Component({
   selector: 'app-heart-rate',
-  templateUrl: './heart-rate.component.html',
-  styleUrls: ['./heart-rate.component.scss']
+  template: `
+    <div style="position: relative;">
+    <ngx-gauge
+        [value]="heartRate"
+        [min]="0"
+        [max]="250"
+        [type]="'arch'"
+        [thick]="10"
+        [cap]="'round'"
+        [label]="deviceName"
+        [append]="'BPM'"
+        [foregroundColor]="'#ff0000'"
+        >
+    </ngx-gauge>
+    <button mat-fab color="primary"
+        *ngIf="heartRate === 0"
+        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;"
+        (click)="connect()">
+        Connect
+    </button>
+    </div>  
+  `
 })
 export class HeartRateComponent implements OnInit {
 

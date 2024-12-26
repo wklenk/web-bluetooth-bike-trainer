@@ -61,8 +61,6 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   leafletGpx: L.GPX | undefined
 
-  selectedFile: File | null = null
-
   isSimulationStarted = false
 
   private map: L.Map | undefined
@@ -174,12 +172,12 @@ export class AppComponent implements AfterViewInit, OnInit {
     if (inputElement) {
       const files = inputElement.files
       if (files) {
-        this.selectedFile = files[0]
+        this.parseGpxFile(files[0])
       }
     }
   }
 
-  parseGpxFile(): void {
+  private parseGpxFile(file: File): void {
     this.inProgress = true
     const reader = new FileReader();
 
@@ -187,20 +185,26 @@ export class AppComponent implements AfterViewInit, OnInit {
       this.inProgress = false
       const content = event.target?.result as string;
 
+      // Remember the GPX track in the local browser storage
       this.storageService.storeItem('GpxTrack', content)
 
       this.displayGPXTrack(content) // Use leaflet-gpx to draw a polyline on the map, including markers
       this.parseElevationFromGpxFile(content) // Addtionally to leaflet-gpx, get distance, elevation AND LatLng of points
+
+      if (this.elevationPoints.length > 0) {
+        this.toastrService.success(`GPX file parsed successfully.`)
+      } else {
+        this.toastrService.error(`Failed to parse the input file.`)
+      }
     };
 
     reader.onerror = (error) => {
       this.inProgress = false
-      console.error('Error reading the file:', error);
+      console.error('Failed to load GPX file.', error);
+      this.toastrService.error('Failed load the GPX file.')
     };
 
-    if (this.selectedFile) {
-      reader.readAsText(this.selectedFile);
-    }
+    reader.readAsText(file);
   }
 
   // Well, leaflet-gpx alread reads and provides elevation-by-distance of all track points,

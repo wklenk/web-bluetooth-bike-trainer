@@ -18,7 +18,7 @@ export class ElapsedTimeIngestionService {
   private elapsedTimeIngestionDataSubject = new Subject<ElapsedTimeIngestionData>();
   elapsedTimeIngestionData$ = this.elapsedTimeIngestionDataSubject.asObservable();
 
-  private startTime: number = 0;
+  private startTime = 0;
 
   constructor(private fitnessMachineService: FitnessMachineService) {
     this.fitnessMachineService.indoorBikeData$.subscribe((indoorBikeData) => {

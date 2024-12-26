@@ -1,4 +1,4 @@
-import { Injectable, OnInit } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { DistanceAndElevation } from '../components/altitude-profile/altitude-profile.component';
 import { TotalDistanceIngestionData, TotalDistanceIngestionService } from './total-distance-ingestion.service';
@@ -27,7 +27,7 @@ export class GradeIngestionService {
   constructor(
     private toastrService: ToastrService,
     private totalDistanceIngestionService: TotalDistanceIngestionService,
-    private fitnessMachineService: FitnessMachineService,   
+    private fitnessMachineService: FitnessMachineService,
   ) {
     this.totalDistanceIngestionService.totalDistanceIngestionData$.subscribe((totalDistanceIngestionData) => {
 
@@ -50,7 +50,7 @@ export class GradeIngestionService {
     })
   }
 
-   // In the altitude-profile component, the user has to create a simplified altitude profile
+  // In the altitude-profile component, the user has to create a simplified altitude profile
   setReducedWaypoints(reducedWaypoints: DistanceAndElevation[]) {
     this.reducedWaypoints = reducedWaypoints
   }
@@ -71,7 +71,7 @@ export class GradeIngestionService {
 
     for (let i = 0; i < this.reducedWaypoints.length - 1; i++) {
       const elevationData0 = this.reducedWaypoints[i]
-      const elevationData1 = this.reducedWaypoints[i+1]
+      const elevationData1 = this.reducedWaypoints[i + 1]
 
       if (distance >= elevationData0.distance && distance < elevationData1.distance) {
         const distanceDiff = elevationData1.distance - elevationData0.distance

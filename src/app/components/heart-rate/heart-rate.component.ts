@@ -39,7 +39,7 @@ export class HeartRateComponent implements OnInit {
   heartRate = default_heart_rate
   deviceName = default_device_name
 
-  constructor(private heartRateService: HeartRateService) {}
+  constructor(private heartRateService: HeartRateService) { }
 
   ngOnInit() {
     this.heartRateService.heartRateMeasurement$.subscribe((heartRate) => {

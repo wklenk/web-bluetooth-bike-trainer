@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 
-export type IndoorBikeData = {
+export interface IndoorBikeData {
   instantaneousSpeedPresent: boolean,
   instantaneousSpeed: number, // km/h
   averageSpeedPresent: boolean,
@@ -33,13 +33,13 @@ export type IndoorBikeData = {
   nativeResistanceLevel: number,
 }
 
-type SupportedResistanceLevelRange = {
+interface SupportedResistanceLevelRange {
   minimumResistanceLevel: number,
   maximumResistanceLevel: number,
   minimumIncrement: number
 }
 
-type SupportedPowerRange = {
+interface SupportedPowerRange {
   minimumPower: number,
   maximumPower: number,
   minimumIncrement: number
@@ -212,18 +212,18 @@ export class FitnessMachineService {
     await this.fitnessMachineControlPointCharacteristic?.writeValueWithResponse(setIndoorBikeSimulationParametersMessage)
   }
 
-// Initiate the procedure to set the Wheel Circumference.
-async setWheelCircumference(circumference: number): Promise<void> {
-  const scaledCircumference = Math.round(circumference * 10)
+  // Initiate the procedure to set the Wheel Circumference.
+  async setWheelCircumference(circumference: number): Promise<void> {
+    const scaledCircumference = Math.round(circumference * 10)
 
-  const setWheelCircumferenceMessage = Uint8Array.of(
-    0x12,
-    scaledCircumference & 0xFF,
-    (scaledCircumference >> 8) & 0xFF
-  )
+    const setWheelCircumferenceMessage = Uint8Array.of(
+      0x12,
+      scaledCircumference & 0xFF,
+      (scaledCircumference >> 8) & 0xFF
+    )
 
-  await this.fitnessMachineControlPointCharacteristic?.writeValueWithResponse(setWheelCircumferenceMessage)
-}
+    await this.fitnessMachineControlPointCharacteristic?.writeValueWithResponse(setWheelCircumferenceMessage)
+  }
 
   // See https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.indoor_bike_data.xml
   private parseIndoorBikeData(data: DataView): IndoorBikeData {

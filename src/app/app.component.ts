@@ -1,13 +1,11 @@
 /// <reference types="web-bluetooth" />
 
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import * as L from 'leaflet';
 import { GPX } from 'leaflet';
 import 'leaflet-gpx'; // Import the Leaflet GPX plugin
-
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -26,7 +24,7 @@ import { GradeIngestionService } from './services/grade-ingestion.service';
 import { FitnessMachineService } from './services/fitness-machine.service';
 import { ToastrModule, ToastrService } from 'ngx-toastr';
 
-export type ElevationPoint = {
+export interface ElevationPoint {
   distance: number,
   latlng: L.LatLng
 }
@@ -34,24 +32,24 @@ export type ElevationPoint = {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [ 
-    CommonModule, 
+  imports: [
+    CommonModule,
 
     // BrowserAnimationsModule,
     ToastrModule,
-    
+
     MatButtonModule,
     MatProgressBarModule,
     MatToolbarModule,
 
-    ElapsedTimeComponent, 
-    DistanceComponent, 
-    GradeComponent, 
-    HeartRateComponent, 
-    CadenceComponent, 
-    SpeedComponent, 
-    PowerComponent, 
-    AltitudeProfileComponent 
+    ElapsedTimeComponent,
+    DistanceComponent,
+    GradeComponent,
+    HeartRateComponent,
+    CadenceComponent,
+    SpeedComponent,
+    PowerComponent,
+    AltitudeProfileComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
@@ -161,7 +159,7 @@ export class AppComponent implements AfterViewInit, OnInit {
 
       new L.GPX(gpxData, {
         async: true
-      }).on('loaded', (e: any) => {
+      }).on('loaded', (e: L.LeafletEvent) => {
         this.leafletGpx = e.target as GPX;
         this.map?.fitBounds(this.leafletGpx.getBounds(), {
           paddingTopLeft: [10, 10],
@@ -218,32 +216,32 @@ export class AppComponent implements AfterViewInit, OnInit {
     let elevationPoints: ElevationPoint[] = []
 
     // Support "routes" (like leaflet-gpx by default)
-    var routes = xml.getElementsByTagName('rte');
-    for (var i = 0; i < routes.length; i++) {
-      elevationPoints = elevationPoints.concat(this.parseSegment(routes[i], 'rtept'))
+    const routes = xml.getElementsByTagName('rte');
+    for (const route of Array.from(routes)) {
+      elevationPoints = elevationPoints.concat(this.parseSegment(route, 'rtept'))
     }
 
     // Support "tracks" (like leaflet-gpx by default)
     // Tracks are <trkpt> tags in one or more <trkseg> sections in each <trk>
-    var tracks = xml.getElementsByTagName('trk');
-    for (i = 0; i < tracks.length; i++) {
-      elevationPoints = elevationPoints.concat(this.parseSegment(tracks[i], 'trkpt'));
+    const tracks = xml.getElementsByTagName('trk');
+    for (const track of Array.from(tracks)) {
+      elevationPoints = elevationPoints.concat(this.parseSegment(track, 'trkpt'))
     }
 
     this.elevationPoints = elevationPoints
   }
 
   private parseSegment(xml: Element, tag: string): ElevationPoint[] {
-    var el = xml.getElementsByTagName(tag);
-    if (!el) return []
+    const elements = xml.getElementsByTagName(tag);
+    if (!elements) return []
 
-    let elevationPoints: ElevationPoint[] = []
-    var currentDistance = 0
-    var lastLl = undefined
-    for (var i = 0; i < el.length; i++) {
-      const ll = new L.LatLng(parseFloat(el[i].getAttribute('lat')!), parseFloat(el[i].getAttribute('lon')!));
+    const elevationPoints: ElevationPoint[] = []
+    let currentDistance = 0
+    let lastLl = undefined
 
-      var _ = el[i].getElementsByTagName('ele');
+    for (const element of Array.from(elements)) {
+      const ll = new L.LatLng(parseFloat(element.getAttribute('lat')!), parseFloat(element.getAttribute('lon')!));
+      const _ = element.getElementsByTagName('ele');
       if (_.length > 0) {
         ll.alt = parseFloat(_[0].textContent!);
       } else {
@@ -254,7 +252,7 @@ export class AppComponent implements AfterViewInit, OnInit {
         }
       }
 
-      let dist_3d = lastLl ? this.dist3d(lastLl, ll) : 0;
+      const dist_3d = lastLl ? this.dist3d(lastLl, ll) : 0;
       currentDistance += dist_3d
 
       elevationPoints.push({
@@ -269,23 +267,23 @@ export class AppComponent implements AfterViewInit, OnInit {
   }
 
   private dist2d(a: L.LatLng, b: L.LatLng) {
-    var R = 6371000;
-    var dLat = this.deg2rad(b.lat - a.lat);
-    var dLon = this.deg2rad(b.lng - a.lng);
-    var r = Math.sin(dLat / 2) *
+    const R = 6371000;
+    const dLat = this.deg2rad(b.lat - a.lat);
+    const dLon = this.deg2rad(b.lng - a.lng);
+    const r = Math.sin(dLat / 2) *
       Math.sin(dLat / 2) +
       Math.cos(this.deg2rad(a.lat)) *
       Math.cos(this.deg2rad(b.lat)) *
       Math.sin(dLon / 2) *
       Math.sin(dLon / 2);
-    var c = 2 * Math.atan2(Math.sqrt(r), Math.sqrt(1 - r));
-    var d = R * c;
+    const c = 2 * Math.atan2(Math.sqrt(r), Math.sqrt(1 - r));
+    const d = R * c;
     return d;
   }
 
   private dist3d(a: L.LatLng, b: L.LatLng): number {
-    var planar = this.dist2d(a, b);
-    var height = Math.abs(b.alt! - a.alt!);
+    const planar = this.dist2d(a, b);
+    const height = Math.abs(b.alt! - a.alt!);
     return Math.sqrt(Math.pow(planar, 2) + Math.pow(height, 2));
   }
 
@@ -303,9 +301,9 @@ export class AppComponent implements AfterViewInit, OnInit {
     let closestLatLng: L.LatLng = this.elevationPoints[0].latlng;
 
     while (low <= high) {
-      let mid = Math.floor((low + high) / 2);
-      let currentDistance: number = this.elevationPoints[mid].distance;
-      let currentLatLng: L.LatLng = this.elevationPoints[mid].latlng;
+      const mid = Math.floor((low + high) / 2);
+      const currentDistance: number = this.elevationPoints[mid].distance;
+      const currentLatLng: L.LatLng = this.elevationPoints[mid].latlng;
 
       if (currentDistance === targetDistance) {
         return currentLatLng; // Exact match found

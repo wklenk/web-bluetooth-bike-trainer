@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { GradeIngestionService } from '../../services/grade-ingestion.service';
 
 @Component({
@@ -9,11 +9,11 @@ import { GradeIngestionService } from '../../services/grade-ingestion.service';
     ↗ {{ grade }}%
   `
 })
-export class GradeComponent {
+export class GradeComponent implements OnInit {
 
-  grade: number = 0
+  grade = 0
 
-  constructor(private gradeIngestionService: GradeIngestionService) {}
+  constructor(private gradeIngestionService: GradeIngestionService) { }
 
   ngOnInit() {
     this.gradeIngestionService.gradeIngestionData$.subscribe((gradeIngestionData) => {

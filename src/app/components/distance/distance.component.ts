@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { TotalDistanceIngestionService } from '../../services/total-distance-ingestion.service';
 
 @Component({
@@ -9,8 +9,8 @@ import { TotalDistanceIngestionService } from '../../services/total-distance-ing
     ⟷ {{ distance }}m
   `
 })
-export class DistanceComponent {
-  distance: number = 0
+export class DistanceComponent implements OnInit {
+  distance = 0
 
   constructor(private totalDistanceIngestionService: TotalDistanceIngestionService) { }
 

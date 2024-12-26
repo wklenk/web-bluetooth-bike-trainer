@@ -18,10 +18,10 @@ export class TotalDistanceIngestionService {
   private totalDistanceIngestionDataSubject = new Subject<TotalDistanceIngestionData>();
   totalDistanceIngestionData$ = this.totalDistanceIngestionDataSubject.asObservable();
 
-  private lastElapsedTime: number = 0;
-  private totalDistance: number = 0;
+  private lastElapsedTime = 0;
+  private totalDistance = 0;
 
-  constructor(private elapsedTimeIngestionService: ElapsedTimeIngestionService) { 
+  constructor(private elapsedTimeIngestionService: ElapsedTimeIngestionService) {
     this.elapsedTimeIngestionService.elapsedTimeIngestionData$.subscribe((elapsedTimeIngestionData) => {
 
       const timeDelta = elapsedTimeIngestionData.calculatedElapsedTime - this.lastElapsedTime
@@ -42,6 +42,6 @@ export class TotalDistanceIngestionService {
   }
 
   disconnect(): void {
-   this.elapsedTimeIngestionService.disconnect()
+    this.elapsedTimeIngestionService.disconnect()
   }
 }

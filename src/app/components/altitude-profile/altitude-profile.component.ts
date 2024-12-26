@@ -5,7 +5,7 @@ import 'leaflet-gpx'; // Import the Leaflet GPX plugin
 import { GradeIngestionService } from '../../services/grade-ingestion.service';
 import { StorageService } from '../../services/storage.service';
 
-export type DistanceAndElevation = {
+export interface DistanceAndElevation {
   distance: number // in m
   elevation: number // in m
 }
@@ -33,7 +33,7 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
 
   @Input() leafletGpx: L.GPX | undefined
 
-  @Input() isSimulationStarted: boolean = false
+  @Input() isSimulationStarted = false
 
   // Emits the current distance index on the track based on the marker in this altitude profile
   @Output() positionChangeEvent = new EventEmitter<number>();
@@ -56,11 +56,11 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
 
   waypoints: DistanceAndElevation[] = []
   profilePolylineString = "" // For drawing a SVG polyline from GPX track
-  
-  svgWidth: number = 0
-  svgHeight: number = 0
 
-  constructor(private gradeIngestionService: GradeIngestionService, private storageService: StorageService, private elementRef: ElementRef) { 
+  svgWidth = 0
+  svgHeight = 0
+
+  constructor(private gradeIngestionService: GradeIngestionService, private storageService: StorageService, private elementRef: ElementRef) {
   }
 
   ngOnInit() {
@@ -107,12 +107,10 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
             elevation: Math.round(elevationDataPoint[1] * 10) / 10
           }
 
-          const p: Point = this.toScreenCoordinates(currentDistanceAndElevation)
-
           // Drop duplicate points
-          if (currentDistanceAndElevation.distance !== lastDistanceAndElevation.distance 
+          if (currentDistanceAndElevation.distance !== lastDistanceAndElevation.distance
             && currentDistanceAndElevation.elevation !== lastDistanceAndElevation.elevation) {
-             this.waypoints.push(currentDistanceAndElevation)
+            this.waypoints.push(currentDistanceAndElevation)
           }
 
           lastDistanceAndElevation = currentDistanceAndElevation
@@ -159,7 +157,7 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
   // ensuring that grade changes do not happen too frequently.
   private reduceWaypoints(): void {
     const fixedDistanceInterval = 50 // m
-    
+
     let distance = fixedDistanceInterval
     let weightedElevationAverage = 0
     while (distance < this.totalDistance) {
@@ -181,7 +179,7 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
   }
 
   @HostListener('window:resize', ['$event'])
-  onResize(event: any): void {
+  onResize(): void {
     this.updatePosition()
 
     // The scaling of the altitude profile panel has changed, screen coordinates need to be recalculated
@@ -243,18 +241,18 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
   }
 
   private calculateWeightedAverageElevationWithMaxDistance(distance: number, maxDistance: number): number {
-    const waypointIndexClosestToDistance = 
+    const waypointIndexClosestToDistance =
       this.findWaypointIndexClosestToDistance(distance, 0, this.waypoints.length - 1)
 
-    const waypointIndexRight = 
+    const waypointIndexRight =
       this.findWaypointIndexClosestToDistance(distance + maxDistance, waypointIndexClosestToDistance, this.waypoints.length - 1)
 
-    const waypointIndexLeft = 
+    const waypointIndexLeft =
       this.findWaypointIndexClosestToDistance(distance - maxDistance, 0, waypointIndexClosestToDistance)
 
     return this.calculateWeightedAverageElevation(waypointIndexClosestToDistance, waypointIndexLeft, waypointIndexRight)
   }
-  
+
   private calculateWeightedAverageElevation(
     originIndex: number,
     distantLeftIndex: number,
@@ -269,7 +267,7 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
       console.log("originIndex: " + originIndex + " distantIndex: " + distantLeftIndex + " waypoints.length: " + this.waypoints.length)
       throw new Error("Invalid left indices");
     }
-  
+
     let totalWeight = 0;
     let weightedSum = 0;
 
@@ -292,7 +290,7 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
       // Calculate mouse position relative to the SVG area
       this.cursorX = event.clientX - svgRect.left;
 
-      let distanceAndElevation = this.toDistanceAndElevation(new Point(this.cursorX, 0))
+      const distanceAndElevation = this.toDistanceAndElevation(new Point(this.cursorX, 0))
       this.cursorDistance = `${distanceAndElevation.distance.toFixed(0)}`
       const elevationAtDistance = this.findElevationByDistance(distanceAndElevation.distance)
       this.cursorElevation = `${elevationAtDistance}`

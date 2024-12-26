@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ElapsedTimeIngestionService } from '../../services/elapsed-time-ingestion.service';
 
 @Component({
@@ -9,10 +9,10 @@ import { ElapsedTimeIngestionService } from '../../services/elapsed-time-ingesti
     ⏱ {{ elapsedTime }}
   `
 })
-export class ElapsedTimeComponent {
-  elapsedTime: string = "00:00:00";
+export class ElapsedTimeComponent implements OnInit {
+  elapsedTime = "00:00:00";
 
-  constructor(private elapsedTimeIngestionService: ElapsedTimeIngestionService) {}
+  constructor(private elapsedTimeIngestionService: ElapsedTimeIngestionService) { }
 
   ngOnInit() {
     this.elapsedTimeIngestionService.elapsedTimeIngestionData$.subscribe((elapsedTimeIngestionData) => {

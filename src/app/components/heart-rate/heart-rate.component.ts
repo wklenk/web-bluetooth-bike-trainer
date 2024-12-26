@@ -27,7 +27,7 @@ const default_device_name = "Heart Rate"
     </ngx-gauge>
     <button mat-fab color="primary"
         *ngIf="heartRate === 0"
-        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;"
+        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; opacity: 0.9;"
         (click)="connect()">
         Connect
     </button>

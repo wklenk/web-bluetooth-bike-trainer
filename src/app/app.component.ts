@@ -6,7 +6,7 @@ import * as L from 'leaflet';
 import { GPX } from 'leaflet';
 import 'leaflet-gpx'; // Import the Leaflet GPX plugin
 import { StorageService } from './services/storage.service';
-import { InclinationIngestionService } from './services/inclination-ingestion.service';
+import { GradeIngestionService } from './services/grade-ingestion.service';
 import { FitnessMachineService } from './services/fitness-machine.service';
 import { ToastContainerDirective, ToastrService } from 'ngx-toastr';
 
@@ -41,14 +41,14 @@ export class AppComponent implements AfterViewInit, OnInit {
   constructor(
     private toastrService: ToastrService,
     private storageService: StorageService,
-    private inclinationIngestionService: InclinationIngestionService,
+    private gradeIngestionService: GradeIngestionService,
     private fitnessMachineService: FitnessMachineService
   ) { }
 
   startSimulation(): void {
     if (!this.isSimulationStarted) {
       this.inProgress = true
-      this.inclinationIngestionService.connect()
+      this.gradeIngestionService.connect()
         .then(() => {
           this.fitnessMachineService.startNotifications()
         })
@@ -71,7 +71,7 @@ export class AppComponent implements AfterViewInit, OnInit {
 
       this.fitnessMachineService.stopNotifications()
         .then(() => {
-          this.inclinationIngestionService.disconnect()
+          this.gradeIngestionService.disconnect()
         })
         .then(() => {
           this.toastrService.info("Info", "Disconnected")
@@ -87,9 +87,9 @@ export class AppComponent implements AfterViewInit, OnInit {
   }
 
   ngOnInit() {
-    this.inclinationIngestionService.inclinationIngestionData$.subscribe((inclinationIngestionData) => {
+    this.gradeIngestionService.gradeIngestionData$.subscribe((gradeIngestionData) => {
       // Update marker on track
-      this.handlePositionChangeEvent(inclinationIngestionData.calculatedTotalDistance)
+      this.handlePositionChangeEvent(gradeIngestionData.calculatedTotalDistance)
     });
   }
 

@@ -20,7 +20,7 @@ import { CadenceComponent } from './components/cadence/cadence.component';
 import { PowerComponent } from './components/power/power.component';
 import { DistanceComponent } from './components/distance/distance.component';
 import { ElapsedTimeComponent } from './components/elapsed-time/elapsed-time.component';
-import { InclinationComponent } from './components/inclination/inclination.component';
+import { GradeComponent } from './components/grade/grade.component';
 
 @NgModule({
   declarations: [
@@ -32,7 +32,7 @@ import { InclinationComponent } from './components/inclination/inclination.compo
     PowerComponent,
     DistanceComponent,
     ElapsedTimeComponent,
-    InclinationComponent
+    GradeComponent
   ],
   imports: [
     BrowserModule,

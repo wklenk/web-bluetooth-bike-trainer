@@ -103,10 +103,9 @@ export class FitnessMachineService {
         const value = (event.target as BluetoothRemoteGATTCharacteristic).value;
         if (value) {
           const decodedValue = value.getUint8(0) + " " + value.getUint8(1) + " " + value.getUint8(2)
-          console.log('FMCP value change:', decodedValue);
-          this.toastrService.info("FMCP value change", `${decodedValue}`)
+          console.info('FMCP value change:', decodedValue);
         } else {
-          console.log('FMCP: Empty notification received');
+          console.error('FMCP: Empty notification received');
         }
       });
 

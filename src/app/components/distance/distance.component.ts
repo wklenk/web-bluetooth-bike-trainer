@@ -4,7 +4,7 @@ import { TotalDistanceIngestionService } from 'src/app/services/total-distance-i
 @Component({
   selector: 'app-distance',
   template: `
-    {{ distance }} m
+    ⟷ {{ distance }}m
   `
 })
 export class DistanceComponent {

@@ -1,8 +1,8 @@
-import { AfterViewInit, Component, EventEmitter, HostListener, Input, OnChanges, OnInit, Output, SimpleChange, SimpleChanges } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import * as L from 'leaflet';
 import { Point } from 'leaflet';
 import 'leaflet-gpx'; // Import the Leaflet GPX plugin
-import { InclinationIngestionService } from 'src/app/services/inclination-ingestion.service';
+import { GradeIngestionService } from 'src/app/services/grade-ingestion.service';
 import { StorageService } from 'src/app/services/storage.service';
 
 export type DistanceAndElevation = {
@@ -13,18 +13,17 @@ export type DistanceAndElevation = {
 @Component({
   selector: 'app-altitude-profile',
   template: `
-    <mat-label>Minimum: {{altitudeMin}}m Maximum: {{altitudeMax}}m Gain: {{altitudeGain}}m Loss:
-        {{altitudeLoss}}m</mat-label>
-    <br />
-    <svg [attr.width]="diagramWidth" [attr.height]="diagramHeight"
-        (mousemove)="onMouseMove($event)" (click)="onCanvasClick($event)">
-        <rect width="100%" height="100%" fill="#000000" opacity="0.1"/>
+    <svg [attr.width]="svgWidth" [attr.height]="svgHeight" style="background-color: rgba(0, 0, 0, 0.1);"
+        (mousemove)="onMouseMove($event)">
 
-        <line [attr.x1]="mouseX" y1="0" [attr.x2]="mouseX" [attr.y2]="diagramHeight" stroke="blue"></line>
-        <polyline [attr.points]="profilePolylineString" fill="none" stroke="black" stroke-width="5"></polyline>
-        <polyline [attr.points]="simplifiedProfilePolylineString" fill="none" stroke="red" stroke-width="5"></polyline>
-        <circle *ngFor="let point of simplifiedProfilePoints; let i = index" [attr.cx]="point.x" [attr.cy]="point.y" r="4"
-            fill="blue" (click)="onCircleClick(i, $event)" />
+        <line [attr.x1]="cursorX" y1="0" [attr.x2]="cursorX" [attr.y2]="svgHeight" stroke="blue"></line>
+        <text [attr.x]="cursorX + 3" y="20" fill="blue" font-size="16">⟷ {{cursorDistance}}m</text>
+        <text [attr.x]="cursorX + 3" y="40" fill="blue" font-size="16">▲ {{cursorElevation}}m</text>
+
+        <!-- <polyline [attr.points]="profilePolylineString" fill="none" stroke="black" stroke-width="5"></polyline> -->
+        <polyline [attr.points]="reducedProfilePolylineString" fill="none" stroke="black" stroke-width="5"></polyline>
+
+        <text [attr.x]="3"[attr.y]="svgHeight - 3" fill="black" font-weight="bold" font-size="16">⟷ {{totalDistance}}m ‖ ▲ {{altitudeMin}}m - {{altitudeMax}}m ‖ ↕ {{altitudeDiff}}m ‖ ↑ {{altitudeGain}}m ‖ ↓ {{altitudeLoss}}m</text>
     </svg>  
   `
 })
@@ -37,43 +36,47 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
   // Emits the current distance index on the track based on the marker in this altitude profile
   @Output() positionChangeEvent = new EventEmitter<number>();
 
-  private viewportWidth: number = 0
+  cursorX = 0
 
-  // Simplified altitude profile
-  private simplifiedElevationData: DistanceAndElevation[] = []
-
-  diagramWidth = 640
-  diagramHeight = this.isSimulationStarted ? 120 : 240
-  distanceDiff = 0
+  totalDistance = 0
   elevationDiff = 0
-  minDistance = 0
   minElevation = 0
   altitudeMin = 0
   altitudeMax = 0
+  altitudeDiff = 0
   altitudeGain = 0
   altitudeLoss = 0
-  mouseX = 0
+  cursorDistance = ""
+  cursorElevation = ""
 
+  reducedWaypoints: DistanceAndElevation[] = []
+  reducedProfilePolylineString = "" // For drawing a SVG polyline from GPX track
+
+  waypoints: DistanceAndElevation[] = []
   profilePolylineString = "" // For drawing a SVG polyline from GPX track
-  simplifiedProfilePolylineString = "" // For drawing a SVG polyline from simplified GPX track
-  simplifiedProfilePoints: Point[] = []
+  
+  svgWidth: number = 0
+  svgHeight: number = 0
 
-  constructor(private inclinationIngestionService: InclinationIngestionService, private storageService: StorageService) { 
-    this.getViewportWidth();
+  constructor(private gradeIngestionService: GradeIngestionService, private storageService: StorageService, private elementRef: ElementRef) { 
   }
 
   ngOnInit() {
-    this.inclinationIngestionService.inclinationIngestionData$.subscribe((inclinationIngestionData) => {
-      this.mouseX = Math.round((inclinationIngestionData.calculatedTotalDistance - this.minDistance) / this.distanceDiff * this.diagramWidth)
+    // Update the cursor position once the simulation has started.
+    this.gradeIngestionService.gradeIngestionData$.subscribe((GradeIngestionData) => {
+      const p = this.toScreenCoordinates({
+        distance: GradeIngestionData.calculatedTotalDistance,
+        elevation: 0
+      })
+      this.cursorX = p.x
     });
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['leafletGpx']) {
-      let elevationDataPoints = ""
-
       this.altitudeMin = Math.round(this.leafletGpx?.get_elevation_min() || 0)
       this.altitudeMax = Math.round(this.leafletGpx?.get_elevation_max() || 0)
+      this.altitudeDiff = this.altitudeMax - this.altitudeMin
       this.altitudeGain = Math.round(this.leafletGpx?.get_elevation_gain() || 0)
       this.altitudeLoss = Math.round(this.leafletGpx?.get_elevation_loss() || 0)
 
@@ -84,73 +87,199 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
 
       if (this.minElevation && maxElevation && maxDistance) {
         this.elevationDiff = maxElevation - this.minElevation
-        this.distanceDiff = maxDistance - this.minDistance
+        this.totalDistance = Math.round(maxDistance)
 
-        let firstPoint = true
+        this.waypoints = []
         let currentDistanceAndElevation: DistanceAndElevation = {
           distance: 0,
           elevation: 0
         }
+        let lastDistanceAndElevation: DistanceAndElevation = {
+          distance: 0,
+          elevation: 0
+        }
+
         this.leafletGpx?.get_elevation_data().forEach(elevationDataPoint => {
           currentDistanceAndElevation = {
-            distance: elevationDataPoint[0] * 1000, // from km (GPX) to m
-            elevation: elevationDataPoint[1]
+            distance: Math.round(elevationDataPoint[0] * 1000 * 10) / 10, // from km (GPX) to m
+            elevation: Math.round(elevationDataPoint[1] * 10) / 10
           }
 
-          const p: Point = this.toPoint(currentDistanceAndElevation)
-          elevationDataPoints += `${p.x},${p.y} `
+          const p: Point = this.toScreenCoordinates(currentDistanceAndElevation)
 
-          // Remember the start point of the track
-          if (firstPoint) {
-            this.addToSimplifiedElevationData(currentDistanceAndElevation)
-            firstPoint = false
+          // Drop duplicate points
+          if (currentDistanceAndElevation.distance !== lastDistanceAndElevation.distance 
+            && currentDistanceAndElevation.elevation !== lastDistanceAndElevation.elevation) {
+             this.waypoints.push(currentDistanceAndElevation)
           }
+
+          lastDistanceAndElevation = currentDistanceAndElevation
         })
 
-        this.profilePolylineString = elevationDataPoints
+        // Convert all the waypoints to a polyline string in screen coordinates.
+        // this.updateWaypointPolylineString()
+        this.reduceWaypoints()
 
-        // Remember the end point of the track
-        this.addToSimplifiedElevationData(currentDistanceAndElevation)
-
-        this.inclinationIngestionService.setSimplifiedElevationData(this.simplifiedElevationData)
+        // Give the reduced waypoints to the Grade ingestion service to enable it
+        // to calculate the grade based on the simplified elevation profile
+        // and control the indoor bike simulation.
+        this.gradeIngestionService.setReducedWaypoints(this.reducedWaypoints)
       }
     }
   }
 
-  ngAfterViewInit(): void {
-    this.diagramWidth = this.viewportWidth - 20
-    this.diagramHeight = 120
+  // Create a SVG polyline string from the waypoints, using screen coordinates.
+  private updateWaypointPolylineString(): void {
+    let polylineString = ""
 
-    const simplifiedElevationDataJSON = this.storageService.retrieveItem("simplifiedElevationData")
-    if (simplifiedElevationDataJSON) {
-      this.simplifiedElevationData = JSON.parse(simplifiedElevationDataJSON)
-      this.inclinationIngestionService.setSimplifiedElevationData(this.simplifiedElevationData)
-    }
-  }
-
-  private addToSimplifiedElevationData(newPoint: DistanceAndElevation): void {
-    // Find the index to insert the new point
-    let insertIndex = this.simplifiedElevationData.findIndex(distanceAndElevation => newPoint.distance < distanceAndElevation.distance);
-
-    // If insertIndex is -1, it means the new point has the highest x-coordinate, so we push it to the end
-    if (insertIndex === -1) {
-      insertIndex = this.simplifiedElevationData.length;
-    }
-
-    // Insert the new point at the calculated index
-    this.simplifiedElevationData.splice(insertIndex, 0, newPoint);
-
-    this.updateSimplifiedProfilePolylineString()
-  }
-
-  private updateSimplifiedProfilePolylineString(): void {
-    this.simplifiedProfilePolylineString = ""
-    this.simplifiedProfilePoints = []
-    this.simplifiedElevationData.forEach(distanceAndElevation => {
-      const p = this.toPoint(distanceAndElevation)
-      this.simplifiedProfilePolylineString += `${p.x},${p.y} `
-      this.simplifiedProfilePoints.push(p)
+    let p: Point
+    this.waypoints.forEach(waypoint => {
+      p = this.toScreenCoordinates(waypoint)
+      polylineString = polylineString.concat(`${p.x},${p.y} `)
     })
+
+    this.profilePolylineString = polylineString
+  }
+
+  private updateReducedWaypointPolylineString(): void {
+    let polylineString = ""
+
+    let p: Point
+    this.reducedWaypoints.forEach(waypoint => {
+      p = this.toScreenCoordinates(waypoint)
+      polylineString = polylineString.concat(`${p.x},${p.y} `)
+    })
+
+    this.reducedProfilePolylineString = polylineString
+  }
+
+  // Convert the waypoints to a reduced set of equidistant waypoints, this way also
+  // ensuring that grade changes do not happen too frequently.
+  private reduceWaypoints(): void {
+    const fixedDistanceInterval = 50 // m
+    
+    let distance = fixedDistanceInterval
+    let weightedElevationAverage = 0
+    while (distance < this.totalDistance) {
+
+      weightedElevationAverage = this.calculateWeightedAverageElevationWithMaxDistance(distance, fixedDistanceInterval)
+      this.reducedWaypoints.push({
+        distance: distance,
+        elevation: weightedElevationAverage
+      })
+
+      distance += fixedDistanceInterval
+    }
+
+    this.updateReducedWaypointPolylineString()
+  }
+
+  ngAfterViewInit(): void {
+    this.updatePosition();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any): void {
+    this.updatePosition()
+
+    // The scaling of the altitude profile panel has changed, screen coordinates need to be recalculated
+    // this.updateWaypointPolylineString()
+    this.updateReducedWaypointPolylineString()
+  }
+
+  updatePosition(): void {
+    const rect = this.elementRef.nativeElement.getBoundingClientRect()
+    this.svgWidth = rect.width
+    this.svgHeight = rect.height
+  }
+
+  private findElevationByDistance(distance: number): number {
+    const elevationData = this.leafletGpx?.get_elevation_data()
+    if (!elevationData) return 0;
+
+    let left = 0;
+    let right = elevationData.length - 1;
+
+    while (left <= right) {
+      const mid = Math.floor((left + right) / 2);
+      const midDistance = elevationData[mid][0] * 1000; // Convert km to m
+
+      if (midDistance === distance) {
+        return elevationData[mid][1]; // Return elevation
+      } else if (midDistance < distance) {
+        left = mid + 1;
+      } else {
+        right = mid - 1;
+      }
+    }
+
+    // If exact distance is not found, return the closest elevation
+    return elevationData[left] ? elevationData[left][1] : elevationData[right][1];
+  }
+
+  // Find the index of the waypoint closest to the given distance
+  private findWaypointIndexClosestToDistance(distance: number, left: number, right: number): number {
+    if (left < 0 || right >= this.waypoints.length || left > right) {
+      console.error("left: " + left + " right: " + right + " waypoints.length: " + this.waypoints.length)
+      throw new Error("Invalid indices")
+    }
+
+    while (left <= right && left < this.waypoints.length && right >= 0) {
+      const mid = Math.floor((left + right) / 2)
+      const midDistance = this.waypoints[mid].distance
+
+      if (midDistance === distance) {
+        return mid
+      } else if (midDistance < distance) {
+        left = mid + 1
+      } else {
+        right = mid - 1
+      }
+    }
+
+    return left < this.waypoints.length ? left : this.waypoints.length - 1
+  }
+
+  private calculateWeightedAverageElevationWithMaxDistance(distance: number, maxDistance: number): number {
+    const waypointIndexClosestToDistance = 
+      this.findWaypointIndexClosestToDistance(distance, 0, this.waypoints.length - 1)
+
+    const waypointIndexRight = 
+      this.findWaypointIndexClosestToDistance(distance + maxDistance, waypointIndexClosestToDistance, this.waypoints.length - 1)
+
+    const waypointIndexLeft = 
+      this.findWaypointIndexClosestToDistance(distance - maxDistance, 0, waypointIndexClosestToDistance)
+
+    return this.calculateWeightedAverageElevation(waypointIndexClosestToDistance, waypointIndexLeft, waypointIndexRight)
+  }
+  
+  private calculateWeightedAverageElevation(
+    originIndex: number,
+    distantLeftIndex: number,
+    distantRightIndex: number
+  ): number {
+    if (originIndex < 0 || distantRightIndex >= this.waypoints.length || originIndex > distantRightIndex) {
+      console.log("originIndex: " + originIndex + " distantIndex: " + distantRightIndex + " waypoints.length: " + this.waypoints.length)
+      throw new Error("Invalid right indices");
+    }
+
+    if (originIndex < 0 || distantLeftIndex < 0 || originIndex < distantLeftIndex) {
+      console.log("originIndex: " + originIndex + " distantIndex: " + distantLeftIndex + " waypoints.length: " + this.waypoints.length)
+      throw new Error("Invalid left indices");
+    }
+  
+    let totalWeight = 0;
+    let weightedSum = 0;
+
+    for (let i = distantLeftIndex; i <= distantRightIndex; i++) {
+      const distanceDifference = Math.abs(this.waypoints[i].distance - this.waypoints[originIndex].distance);
+      const weight = 1 / (distanceDifference + 1); // Adding 1 to avoid division by zero
+
+      totalWeight += weight;
+      weightedSum += this.waypoints[i].elevation * weight;
+    }
+
+    return weightedSum / totalWeight;
   }
 
   onMouseMove(event: MouseEvent): void {
@@ -159,64 +288,33 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
       const svgRect = svgElement.getBoundingClientRect();
 
       // Calculate mouse position relative to the SVG area
-      this.mouseX = event.clientX - svgRect.left;
+      this.cursorX = event.clientX - svgRect.left;
 
-      let distanceAndElevation = this.toDistanceAndElevation(new Point(this.mouseX, 0))
+      let distanceAndElevation = this.toDistanceAndElevation(new Point(this.cursorX, 0))
+      this.cursorDistance = `${distanceAndElevation.distance.toFixed(0)}`
+      const elevationAtDistance = this.findElevationByDistance(distanceAndElevation.distance)
+      this.cursorElevation = `${elevationAtDistance}`
 
       this.positionChangeEvent.emit(distanceAndElevation.distance)
-    }
-  }
-
-  // Add a point to the simplified elevation profile data
-  onCanvasClick(event: MouseEvent): void {
-    if (!this.isSimulationStarted) {
-      const svgElement = event.currentTarget as SVGSVGElement;
-      const svgRect = svgElement.getBoundingClientRect();
-
-      // Calculate mouse position relative to the SVG area
-      let mouseX = event.clientX - svgRect.left;
-      let mouseY = event.clientY - svgRect.top;
-
-      this.addToSimplifiedElevationData(
-        this.toDistanceAndElevation(new Point(mouseX, mouseY))
-      )
-
-      this.storageService.storeItem("simplifiedElevationData", JSON.stringify(this.simplifiedElevationData))
-      this.inclinationIngestionService.setSimplifiedElevationData(this.simplifiedElevationData)
-    }
-  }
-
-  // Delete a point of the simplified elevation profile data by clicking on it
-  onCircleClick(index: number, event: MouseEvent): void {
-    if (!this.isSimulationStarted) {
-      this.simplifiedElevationData.splice(index, 1); // Remove 1 element at the specified index
-      event.stopPropagation()
-
-      this.updateSimplifiedProfilePolylineString()
-
-      this.storageService.storeItem("simplifiedElevationData", JSON.stringify(this.simplifiedElevationData))
-      this.inclinationIngestionService.setSimplifiedElevationData(this.simplifiedElevationData)
     }
   }
 
   // Convert from screen coordinates to real world coordinates
   private toDistanceAndElevation(point: Point): DistanceAndElevation {
     return {
-      distance: (point.x / this.diagramWidth * this.distanceDiff) + this.minDistance,
-      elevation: ((this.diagramHeight - point.y) / this.diagramHeight * this.elevationDiff) + this.minElevation
+      distance: (point.x / this.svgWidth * this.totalDistance),
+      elevation: ((this.svgHeight - point.y) / this.svgHeight * this.elevationDiff) + this.minElevation
     }
   }
 
   // Convert from real world coordinates to screen coordinates
-  private toPoint(distanceAndElevation: DistanceAndElevation): Point {
-    return new Point(
-      Math.round((distanceAndElevation.distance - this.minDistance) / this.distanceDiff * this.diagramWidth),
-      this.diagramHeight - Math.round((distanceAndElevation.elevation - this.minElevation) / this.elevationDiff * this.diagramHeight)
-    )
-  }
+  private toScreenCoordinates(distanceAndElevation: DistanceAndElevation): Point {
+    const height = this.svgHeight - 20 // Some padding at top and bottom
+    const yOffset = 10
 
-  @HostListener('window:resize', ['$event'])
-  getViewportWidth() {
-    this.viewportWidth = window.innerWidth;
+    return new Point(
+      Math.round(distanceAndElevation.distance / this.totalDistance * this.svgWidth),
+      height - Math.round((distanceAndElevation.elevation - this.minElevation) / this.elevationDiff * height) + yOffset
+    )
   }
 }

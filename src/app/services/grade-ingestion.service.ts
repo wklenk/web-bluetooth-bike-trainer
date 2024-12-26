@@ -5,24 +5,24 @@ import { TotalDistanceIngestionData, TotalDistanceIngestionService } from './tot
 import { ToastrService } from 'ngx-toastr';
 import { FitnessMachineService } from './fitness-machine.service';
 
-export type InclinationIngestionData = {
-  inclination: number // percent
+export type GradeIngestionData = {
+  grade: number // percent
 } & TotalDistanceIngestionData
 
 @Injectable({
   providedIn: 'root'
 })
 /**
- * This service keeps track of the inclination of the path based on the distance covered since the start of the workout,
- * adding the inclination property to the TotalDistanceIngestionData notifications.
+ * This service keeps track of the grade of the path based on the distance covered since the start of the workout,
+ * adding the grade property to the TotalDistanceIngestionData notifications.
  */
-export class InclinationIngestionService {
+export class GradeIngestionService {
 
-  private inclinationIngestionDataSubject = new Subject<InclinationIngestionData>();
-  inclinationIngestionData$ = this.inclinationIngestionDataSubject.asObservable();
+  private gradeIngestionDataSubject = new Subject<GradeIngestionData>();
+  gradeIngestionData$ = this.gradeIngestionDataSubject.asObservable();
 
-  simplifiedElevationData: DistanceAndElevation[] = []
-  private currentInclination: number | undefined = undefined
+  reducedWaypoints: DistanceAndElevation[] = []
+  private currentGrade: number | undefined = undefined
 
   constructor(
     private toastrService: ToastrService,
@@ -32,27 +32,27 @@ export class InclinationIngestionService {
     this.totalDistanceIngestionService.totalDistanceIngestionData$.subscribe((totalDistanceIngestionData) => {
 
       // Based on the distance, find the current elevation
-      const inclination = this.findInclinationByDistance(totalDistanceIngestionData.calculatedTotalDistance)
+      const grade = Math.round(this.findGradeByDistance(totalDistanceIngestionData.calculatedTotalDistance) * 10) / 10
 
-      if (this.currentInclination != inclination) {
-        this.currentInclination = inclination
+      if (this.currentGrade != grade) {
+        this.currentGrade = grade
 
-        this.fitnessMachineService.setIndoorBikeSimulationParameters(0, inclination, 0, 0)
+        this.fitnessMachineService.setIndoorBikeSimulationParameters(0, grade, 0, 0)
           .then(() => {
-            this.toastrService.info("Inclination set to " + inclination + "%")
+            this.toastrService.info(`Grade now ${grade}%`)
           })
       }
 
-      this.inclinationIngestionDataSubject.next({
+      this.gradeIngestionDataSubject.next({
         ...totalDistanceIngestionData,
-        inclination: inclination
+        grade: grade
       })
     })
   }
 
    // In the altitude-profile component, the user has to create a simplified altitude profile
-  setSimplifiedElevationData(simplifiedElevationData: DistanceAndElevation[]) {
-    this.simplifiedElevationData = simplifiedElevationData
+  setReducedWaypoints(reducedWaypoints: DistanceAndElevation[]) {
+    this.reducedWaypoints = reducedWaypoints
   }
 
   async connect(): Promise<void> {
@@ -63,15 +63,15 @@ export class InclinationIngestionService {
     this.totalDistanceIngestionService.disconnect()
   }
 
-  private findInclinationByDistance(distance: number): number {
+  private findGradeByDistance(distance: number): number {
 
-    if (!this.simplifiedElevationData) {
+    if (!this.reducedWaypoints) {
       return 0
     }
 
-    for (let i = 0; i < this.simplifiedElevationData.length - 1; i++) {
-      const elevationData0 = this.simplifiedElevationData[i]
-      const elevationData1 = this.simplifiedElevationData[i+1]
+    for (let i = 0; i < this.reducedWaypoints.length - 1; i++) {
+      const elevationData0 = this.reducedWaypoints[i]
+      const elevationData1 = this.reducedWaypoints[i+1]
 
       if (distance >= elevationData0.distance && distance < elevationData1.distance) {
         const distanceDiff = elevationData1.distance - elevationData0.distance

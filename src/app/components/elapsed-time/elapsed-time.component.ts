@@ -4,7 +4,7 @@ import { ElapsedTimeIngestionService } from 'src/app/services/elapsed-time-inges
 @Component({
   selector: 'app-elapsed-time',
   template: `
-  {{ elapsedTime }}
+    ⏱ {{ elapsedTime }}
   `
 })
 export class ElapsedTimeComponent {
@@ -14,7 +14,7 @@ export class ElapsedTimeComponent {
 
   ngOnInit() {
     this.elapsedTimeIngestionService.elapsedTimeIngestionData$.subscribe((elapsedTimeIngestionData) => {
-      this.elapsedTime = this.formatSecondsToHHMMSS(elapsedTimeIngestionData.calculatedElapsedTime * 1000)
+      this.elapsedTime = this.formatSecondsToHHMMSS(elapsedTimeIngestionData.calculatedElapsedTime)
     });
   }
 

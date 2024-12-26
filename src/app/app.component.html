@@ -5,6 +5,8 @@
   <span class="toolbar-spacer"></span>
   <app-distance></app-distance>
   <span class="toolbar-spacer"></span>
+  <app-grade></app-grade>
+  <span class="toolbar-spacer"></span>
   <input *ngIf="!isSimulationStarted" type="file" (change)="onFileSelected($event)" />
   <button mat-raised-button color="primary" *ngIf="!isSimulationStarted" (click)="parseGpxFile()">Import GPX Track</button>
   <button mat-raised-button color="primary" *ngIf="!isSimulationStarted" (click)="startSimulation()">Start Simulation</button>
@@ -20,7 +22,6 @@
   <app-speed></app-speed>
   <app-cadence></app-cadence>
   <app-power></app-power>
-  <app-inclination></app-inclination>
 </div>
 <app-altitude-profile class="fullWidthOnBottom" [leafletGpx]="leafletGpx" [isSimulationStarted]="isSimulationStarted"  (positionChangeEvent)="handlePositionChangeEvent($event)"></app-altitude-profile>
 

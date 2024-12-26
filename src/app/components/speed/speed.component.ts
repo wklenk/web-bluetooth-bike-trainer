@@ -1,8 +1,11 @@
 import { Component } from '@angular/core';
-import { FitnessMachineService } from 'src/app/services/fitness-machine.service';
+import { NgxGaugeModule } from 'ngx-gauge';
+import { FitnessMachineService } from '../../services/fitness-machine.service';
 
 @Component({
   selector: 'app-speed',
+  standalone: true,
+  imports: [NgxGaugeModule],
   template: `
     <ngx-gauge
         [value]="speed"
@@ -28,5 +31,4 @@ export class SpeedComponent {
       this.speed = Math.round(indoorBikeData.instantaneousSpeed)
     });
   }
-
 }

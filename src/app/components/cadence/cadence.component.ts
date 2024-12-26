@@ -1,8 +1,11 @@
 import { Component } from '@angular/core';
-import { FitnessMachineService } from 'src/app/services/fitness-machine.service';
+import { NgxGaugeModule } from 'ngx-gauge';
+import { FitnessMachineService } from '../../services/fitness-machine.service';
 
 @Component({
   selector: 'app-cadence',
+  standalone: true,
+  imports: [NgxGaugeModule],
   template: `
     <ngx-gauge
         [value]="cadence"
@@ -29,5 +32,4 @@ export class CadenceComponent {
       this.cadence = Math.round(indoorBikeData.instantaneousCadence)
     });
   }
-
 }

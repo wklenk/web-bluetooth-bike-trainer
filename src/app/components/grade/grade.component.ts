@@ -1,8 +1,10 @@
 import { Component } from '@angular/core';
-import { GradeIngestionService } from 'src/app/services/grade-ingestion.service';
+import { GradeIngestionService } from '../../services/grade-ingestion.service';
 
 @Component({
   selector: 'app-grade',
+  standalone: true,
+  imports: [],
   template: `
     ↗ {{ grade }}%
   `

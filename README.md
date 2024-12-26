@@ -28,6 +28,22 @@ Start screen with GPX track imported.
 * You can move a cursor over the altitude profile to see details like distance and elevation.
 * At the very bottom, you see some overall information about the track.
 
+## How to build and run
+
+Preconditions:
+* Recent node version (and npm) installed
+
+
+Install dependencies
+
+    npm ci
+
+Run development server
+
+    npm run build
+
+Use your browser and open http://localhost:4200 .   
+
 ## Sources
 The following sources of information were helpful:
 

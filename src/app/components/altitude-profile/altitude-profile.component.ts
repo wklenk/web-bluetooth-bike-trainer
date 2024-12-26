@@ -2,8 +2,8 @@ import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input
 import * as L from 'leaflet';
 import { Point } from 'leaflet';
 import 'leaflet-gpx'; // Import the Leaflet GPX plugin
-import { GradeIngestionService } from 'src/app/services/grade-ingestion.service';
-import { StorageService } from 'src/app/services/storage.service';
+import { GradeIngestionService } from '../../services/grade-ingestion.service';
+import { StorageService } from '../../services/storage.service';
 
 export type DistanceAndElevation = {
   distance: number // in m
@@ -12,6 +12,8 @@ export type DistanceAndElevation = {
 
 @Component({
   selector: 'app-altitude-profile',
+  standalone: true,
+  imports: [],
   template: `
     <svg [attr.width]="svgWidth" [attr.height]="svgHeight" style="background-color: rgba(0, 0, 0, 0.1);"
         (mousemove)="onMouseMove($event)">

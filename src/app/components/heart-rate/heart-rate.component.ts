@@ -1,11 +1,16 @@
 import { Component, OnInit } from '@angular/core';
-import { HeartRateService } from 'src/app/services/heart-rate.service';
+import { CommonModule } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
+import { NgxGaugeModule } from 'ngx-gauge';
+import { HeartRateService } from '../../services/heart-rate.service';
 
 const default_heart_rate = 0;
 const default_device_name = "Heart Rate"
 
 @Component({
   selector: 'app-heart-rate',
+  standalone: true,
+  imports: [CommonModule, MatButtonModule, NgxGaugeModule],
   template: `
     <div style="position: relative;">
     <ngx-gauge

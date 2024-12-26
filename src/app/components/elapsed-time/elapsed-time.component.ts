@@ -1,8 +1,10 @@
 import { Component } from '@angular/core';
-import { ElapsedTimeIngestionService } from 'src/app/services/elapsed-time-ingestion.service';
+import { ElapsedTimeIngestionService } from '../../services/elapsed-time-ingestion.service';
 
 @Component({
   selector: 'app-elapsed-time',
+  standalone: true,
+  imports: [],
   template: `
     ⏱ {{ elapsedTime }}
   `

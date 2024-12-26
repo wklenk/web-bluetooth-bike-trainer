@@ -1,14 +1,30 @@
 /// <reference types="web-bluetooth" />
 
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 import * as L from 'leaflet';
 import { GPX } from 'leaflet';
 import 'leaflet-gpx'; // Import the Leaflet GPX plugin
+
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatToolbarModule } from '@angular/material/toolbar';
+
+import { ElapsedTimeComponent } from './components/elapsed-time/elapsed-time.component';
+import { DistanceComponent } from './components/distance/distance.component';
+import { GradeComponent } from './components/grade/grade.component';
+import { HeartRateComponent } from './components/heart-rate/heart-rate.component';
+import { CadenceComponent } from './components/cadence/cadence.component';
+import { SpeedComponent } from './components/speed/speed.component';
+import { PowerComponent } from './components/power/power.component';
+import { AltitudeProfileComponent } from './components/altitude-profile/altitude-profile.component';
 import { StorageService } from './services/storage.service';
 import { GradeIngestionService } from './services/grade-ingestion.service';
 import { FitnessMachineService } from './services/fitness-machine.service';
-import { ToastContainerDirective, ToastrService } from 'ngx-toastr';
+import { ToastrModule, ToastrService } from 'ngx-toastr';
 
 export type ElevationPoint = {
   distance: number,
@@ -17,13 +33,30 @@ export type ElevationPoint = {
 
 @Component({
   selector: 'app-root',
+  standalone: true,
+  imports: [ 
+    CommonModule, 
+
+    // BrowserAnimationsModule,
+    ToastrModule,
+    
+    MatButtonModule,
+    MatProgressBarModule,
+    MatToolbarModule,
+
+    ElapsedTimeComponent, 
+    DistanceComponent, 
+    GradeComponent, 
+    HeartRateComponent, 
+    CadenceComponent, 
+    SpeedComponent, 
+    PowerComponent, 
+    AltitudeProfileComponent 
+  ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements AfterViewInit, OnInit {
-
-  @ViewChild(ToastContainerDirective, { static: true })
-  toastContainer: ToastContainerDirective | undefined;
 
   title = 'Web Bluetooth Bike Trainer';
   inProgress = false

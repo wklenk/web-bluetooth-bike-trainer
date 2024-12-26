@@ -1,8 +1,10 @@
 import { Component } from '@angular/core';
-import { TotalDistanceIngestionService } from 'src/app/services/total-distance-ingestion.service';
+import { TotalDistanceIngestionService } from '../../services/total-distance-ingestion.service';
 
 @Component({
   selector: 'app-distance',
+  standalone: true,
+  imports: [],
   template: `
     ⟷ {{ distance }}m
   `

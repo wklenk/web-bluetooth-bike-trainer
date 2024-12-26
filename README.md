@@ -1,6 +1,15 @@
 # Web Bluetooth Bike Trainer
 
-Status: Work in progress
+Status: Functional
+
+Functional to-dos:
+* The algorithm to reduce the waypoints is currently very simple. It should get optimized.
+* Start/End of reduced waypoints is unclear.
+* Test on bike trainers other then Wahoo Kickr.
+
+Technical to-dos:
+* Upgrade to pnpm and Vite
+
 
 Started this repository as a christmas holiday project 2023/2024 to experimentally check out if a smart bike trainer (like [Wahoo Kickr](https://www.wahoofitness.com/devices/indoor-cycling/bike-trainers/kickr-buy)) can be controlled by a standalone web application, using the [Web Bluetooth API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Bluetooth_API) of the web browser.
 
@@ -8,24 +17,16 @@ Started this repository as a christmas holiday project 2023/2024 to experimental
 * Web Bluetooth might not be supported on all web browsers. To make sure it is enabled in Google Chrome, please follow these instructions: https://www.youtube.com/watch?v=LOmGqTSvoR4&t=1s
 * Use on your own risk
 
-## Functional requirements
-The web app is intended to help me in an upcoming bike competition. It shall be able to **simulate** the race track with is elevations on the bike trainer.
+## Screenshots
 
-* Import a GPX track (containing elevation information)
-* Show the race track on a map
-* Show the altitude profile
-* Provide a little editor that allows to simplify the altitude profile with some straight lines
-* Based on the slope of these straight lines, the web app shall control the resistance value of the bike trainer
-* Start/Stop a ride on the imported GPX track
-* Show current speed, cadence and power from bike trainer
-* Show current time and slope
-* Show current heart rate from a Bluetooth LE heartrate monitor
+Start screen with GPX track imported.
 
-## Additional ideas
+![Start screen with GPX track imported](media/2024-12-26_14h20_22.png)
 
-* Auto-stop at the end of the track
-* Histogram in the backgroud of the tiles for speed, cadence, heartrate, power, distance
-* Allow to define start and stop point somewhere in the GPX track
+* The waypoints are visualized on a map.
+* At the bottom section, an altitude profile is displayed.
+* You can move a cursor over the altitude profile to see details like distance and elevation.
+* At the very bottom, you see some overall information about the track.
 
 ## Sources
 The following sources of information were helpful:
@@ -45,26 +46,9 @@ The following sources of information were helpful:
 * Angular Material
 * https://leafletjs.com Leaflet
 * https://github.com/mpetazzoni/leaflet-gpx GPX plugin for Leaflet
-
-## My Wahoo KICKR data
-
-* Resistence Level range: From 0 to 100 with minimum increment 1
-* Supported Power range: From 0 to 2000 with minimum increment 1
-
-Does this mean ...
-
-* with resistance level 0 you need to provide a power 
-
+* https://github.com/ashish-chopra/ngx-gauge A highly customizable Gauge component for Angular apps and dashboards. 
 
 ## Development server
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
-
-## Code scaffolding
-
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
-
-## Build
-
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
 

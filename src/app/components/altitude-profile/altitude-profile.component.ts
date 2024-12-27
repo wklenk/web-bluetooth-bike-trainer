@@ -48,6 +48,7 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
   altitudeDiff = 0
   altitudeGain = 0
   altitudeLoss = 0
+
   cursorDistance = ""
   cursorElevation = ""
 
@@ -65,12 +66,16 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
 
   ngOnInit() {
     // Update the cursor position once the simulation has started.
-    this.gradeIngestionService.gradeIngestionData$.subscribe((GradeIngestionData) => {
+    this.gradeIngestionService.gradeIngestionData$.subscribe((gradeIngestionData) => {
       const p = this.toScreenCoordinates({
-        distance: GradeIngestionData.calculatedTotalDistance,
+        distance: gradeIngestionData.calculatedTotalDistance,
         elevation: 0
       })
       this.cursorX = p.x
+
+      this.cursorDistance = `${gradeIngestionData.calculatedTotalDistance.toFixed(0)}`
+      const elevationAtDistance = this.findElevationByDistance(gradeIngestionData.calculatedTotalDistance)
+      this.cursorElevation = `${elevationAtDistance}`
     });
   }
 

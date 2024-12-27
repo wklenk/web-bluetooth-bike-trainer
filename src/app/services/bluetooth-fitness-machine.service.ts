@@ -1,37 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
-
-export interface IndoorBikeData {
-  instantaneousSpeedPresent: boolean,
-  instantaneousSpeed: number, // km/h
-  averageSpeedPresent: boolean,
-  averageSpeed: number, // km/h
-  instantaneousCadencePresent: boolean,
-  instantaneousCadence: number, // rpm
-  averageCadencePresent: boolean,
-  averageCadence: number, // rpm
-  instantaneousPowerPresent: boolean,
-  instantaneousPower: number, // W
-  averagePowerPresent: boolean,
-  averagePower: number, // W
-  expendedEnergyPresent: boolean,
-  totalEnergy: number, // kcal
-  energyPerHour: number, // kcal/hour
-  energyPerMinute: number, // kcal/minute
-  heartRatePresent: boolean,
-  heartRate: number, // bpm
-  metabolicEquivalentPresent: boolean,
-  metabolicEquivalent: number,
-
-  // KICKR doesn't send it
-  nativeElapsedTimePresent: boolean,
-  nativeElapsedTime: number, // s
-  nativeTotalDistancePresent: boolean,
-  nativeTotalDistance: number, // m
-  nativeResistanceLevelPresent: boolean,
-  nativeResistanceLevel: number,
-}
+import { FitnessMachineService, IndoorBikeData } from './FitnessMachineService';
 
 interface SupportedResistanceLevelRange {
   minimumResistanceLevel: number,
@@ -48,7 +18,7 @@ interface SupportedPowerRange {
 @Injectable({
   providedIn: 'root'
 })
-export class FitnessMachineService {
+export class BluetoothFitnessMachineService implements FitnessMachineService {
 
   private indoorBikeDataSubject = new Subject<IndoorBikeData>()
   indoorBikeData$ = this.indoorBikeDataSubject.asObservable()

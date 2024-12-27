@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { NgxGaugeModule } from 'ngx-gauge';
-import { FitnessMachineService } from '../../services/fitness-machine.service';
+import { FITNESS_MACHINE_SERVICE, FitnessMachineService } from '../../services/FitnessMachineService';
 
 @Component({
   selector: 'app-power',
@@ -24,7 +24,7 @@ import { FitnessMachineService } from '../../services/fitness-machine.service';
 export class PowerComponent implements OnInit {
   power = 0
 
-  constructor(private fitnessMachineService: FitnessMachineService) { }
+  constructor(@Inject(FITNESS_MACHINE_SERVICE) private fitnessMachineService: FitnessMachineService) { }
 
   ngOnInit() {
     this.fitnessMachineService.indoorBikeData$.subscribe((indoorBikeData) => {

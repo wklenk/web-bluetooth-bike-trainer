@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { FitnessMachineService } from './fitness-machine.service';
+import { BluetoothFitnessMachineService } from './bluetooth-fitness-machine.service';
 
 describe('FitnessMachineService', () => {
-  let service: FitnessMachineService;
+  let service: BluetoothFitnessMachineService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(FitnessMachineService);
+    service = TestBed.inject(BluetoothFitnessMachineService);
   });
 
   it('should be created', () => {

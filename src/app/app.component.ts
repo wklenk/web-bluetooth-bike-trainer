@@ -1,6 +1,6 @@
 /// <reference types="web-bluetooth" />
 
-import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import * as L from 'leaflet';
@@ -21,8 +21,8 @@ import { PowerComponent } from './components/power/power.component';
 import { AltitudeProfileComponent } from './components/altitude-profile/altitude-profile.component';
 import { StorageService } from './services/storage.service';
 import { GradeIngestionService } from './services/grade-ingestion.service';
-import { FitnessMachineService } from './services/fitness-machine.service';
 import { ToastrModule, ToastrService } from 'ngx-toastr';
+import { FITNESS_MACHINE_SERVICE, FitnessMachineService } from './services/FitnessMachineService';
 
 export interface ElevationPoint {
   distance: number,
@@ -71,7 +71,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     private toastrService: ToastrService,
     private storageService: StorageService,
     private gradeIngestionService: GradeIngestionService,
-    private fitnessMachineService: FitnessMachineService
+    @Inject(FITNESS_MACHINE_SERVICE) private fitnessMachineService: FitnessMachineService
   ) { }
 
   startSimulation(): void {

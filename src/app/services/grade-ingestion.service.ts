@@ -1,9 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { DistanceAndElevation } from '../components/altitude-profile/altitude-profile.component';
 import { TotalDistanceIngestionData, TotalDistanceIngestionService } from './total-distance-ingestion.service';
 import { ToastrService } from 'ngx-toastr';
-import { FitnessMachineService } from './fitness-machine.service';
+import { FITNESS_MACHINE_SERVICE, FitnessMachineService } from './FitnessMachineService';
 
 export type GradeIngestionData = {
   grade: number // percent
@@ -27,7 +27,7 @@ export class GradeIngestionService {
   constructor(
     private toastrService: ToastrService,
     private totalDistanceIngestionService: TotalDistanceIngestionService,
-    private fitnessMachineService: FitnessMachineService,
+    @Inject(FITNESS_MACHINE_SERVICE) private fitnessMachineService: FitnessMachineService,
   ) {
     this.totalDistanceIngestionService.totalDistanceIngestionData$.subscribe((totalDistanceIngestionData) => {
 

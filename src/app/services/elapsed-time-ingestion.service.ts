@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
-import { FitnessMachineService, IndoorBikeData } from './fitness-machine.service';
+import { Inject, Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
+import { FITNESS_MACHINE_SERVICE, FitnessMachineService, IndoorBikeData } from './FitnessMachineService';
 
 export type ElapsedTimeIngestionData = {
   calculatedElapsedTime: number // s
@@ -20,7 +20,7 @@ export class ElapsedTimeIngestionService {
 
   private startTime = 0;
 
-  constructor(private fitnessMachineService: FitnessMachineService) {
+  constructor(@Inject(FITNESS_MACHINE_SERVICE) private fitnessMachineService: FitnessMachineService) {
     this.fitnessMachineService.indoorBikeData$.subscribe((indoorBikeData) => {
 
       const calculatedElapsedTime = (Date.now() - this.startTime) / 1000 // In seconds

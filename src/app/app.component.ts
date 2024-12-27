@@ -1,6 +1,6 @@
 /// <reference types="web-bluetooth" />
 
-import { AfterViewInit, Component, Inject, OnInit } from '@angular/core';
+import { AfterViewInit, Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import * as L from 'leaflet';
@@ -10,6 +10,8 @@ import 'leaflet-gpx'; // Import the Leaflet GPX plugin
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
+
+import {ToastrModule, ToastrService } from 'ngx-toastr';
 
 import { ElapsedTimeComponent } from './components/elapsed-time/elapsed-time.component';
 import { DistanceComponent } from './components/distance/distance.component';
@@ -21,7 +23,6 @@ import { PowerComponent } from './components/power/power.component';
 import { AltitudeProfileComponent } from './components/altitude-profile/altitude-profile.component';
 import { StorageService } from './services/storage.service';
 import { GradeIngestionService } from './services/grade-ingestion.service';
-import { ToastrModule, ToastrService } from 'ngx-toastr';
 import { FITNESS_MACHINE_SERVICE, FitnessMachineService } from './services/FitnessMachineService';
 
 export interface ElevationPoint {
@@ -55,7 +56,6 @@ export interface ElevationPoint {
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements AfterViewInit, OnInit {
-
   title = 'Web Bluetooth Bike Trainer';
   inProgress = false
 

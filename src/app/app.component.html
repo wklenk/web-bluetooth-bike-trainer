@@ -12,11 +12,10 @@
   <button mat-raised-button color="primary" *ngIf="isSimulationStarted" (click)="stopSimulation()">Stop Simulation</button>
 </mat-toolbar>
 <mat-progress-bar *ngIf="inProgress" mode="indeterminate"></mat-progress-bar>
-<div aria-live="polite" toastContainer></div>
 <div class="map-container">
   <div id="map"></div>
 </div>
-<div class="container">
+<div class="dashboard-container">
   <app-heart-rate></app-heart-rate>
   <app-speed></app-speed>
   <app-cadence></app-cadence>

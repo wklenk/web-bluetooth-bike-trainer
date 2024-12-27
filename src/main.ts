@@ -12,7 +12,11 @@ import { DemoFitnessMachineService } from './app/services/demo-fitness-machine.s
 bootstrapApplication(AppComponent, {
   providers: [
     provideAnimations(), // required animations providers
-    provideToastr(), // Toastr providers
+    //provideToastr(), // Toastr providers
+    provideToastr({
+      timeOut: 3000,
+      preventDuplicates: true
+    }),
 
     // This allows to switch between the BluetoothFitnessMachineService which requires
     // a real Bluetooth Indoor Bike Trainer and the DemoFitnessMachineService, which just

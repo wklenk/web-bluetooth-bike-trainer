@@ -20,8 +20,8 @@ interface SupportedPowerRange {
 })
 export class BluetoothFitnessMachineService implements FitnessMachineService {
 
-  private indoorBikeDataSubject = new Subject<IndoorBikeData>()
-  indoorBikeData$ = this.indoorBikeDataSubject.asObservable()
+  private readonly indoorBikeDataSubject = new Subject<IndoorBikeData>()
+  public readonly indoorBikeData$ = this.indoorBikeDataSubject.asObservable()
 
   constructor(
     private toastrService: ToastrService,
@@ -72,18 +72,8 @@ export class BluetoothFitnessMachineService implements FitnessMachineService {
       }
 
       // Enable notifications
+      this.fitnessMachineControlPointCharacteristic?.addEventListener('characteristicvaluechanged', event => this.onControlPointChanged(event))
       await this.fitnessMachineControlPointCharacteristic?.startNotifications();
-
-      // Add event listener for notifications
-      this.fitnessMachineControlPointCharacteristic?.addEventListener('characteristicvaluechanged', (event: Event) => {
-        const value = (event.target as BluetoothRemoteGATTCharacteristic).value;
-        if (value) {
-          const decodedValue = value.getUint8(0) + " " + value.getUint8(1) + " " + value.getUint8(2)
-          console.info('FMCP value change:', decodedValue);
-        } else {
-          console.error('FMCP: Empty notification received');
-        }
-      });
 
       await this.reset()
       await this.setWheelCircumference(2200)
@@ -94,7 +84,21 @@ export class BluetoothFitnessMachineService implements FitnessMachineService {
     }
   }
 
-  disconnect(): void {
+  private onControlPointChanged(event: Event): void {
+    const value = (event.target as BluetoothRemoteGATTCharacteristic).value;
+        if (value) {
+          const decodedValue = value.getUint8(0) + " " + value.getUint8(1) + " " + value.getUint8(2)
+          console.info('FMCP value change:', decodedValue);
+        } else {
+          console.error('FMCP: Empty notification received');
+        }
+  }
+
+  async disconnect(): Promise<void> {
+    // Disable notifications
+    this.fitnessMachineControlPointCharacteristic?.removeEventListener('characteristicvaluechanged', event => this.onControlPointChanged(event))
+    await this.fitnessMachineControlPointCharacteristic?.stopNotifications()
+
     if (this.device && this.device.gatt?.connected) {
       this.device.gatt.disconnect();
       console.log('Device disconnected');

@@ -1,5 +1,8 @@
 import { Injectable, InjectionToken } from "@angular/core";
 import { Observable } from "rxjs";
+import { ElapsedTimeProcessorService } from "./elapsed-time-processor.service";
+import { TotalDistanceProcessorService } from "./total-distance-processor.service";
+import { GradeProcessorService } from "./grade-processor.service";
 
 
 // Define the InjectionToken for the interface
@@ -51,26 +54,38 @@ export interface IndoorBikeData {
 }
 
 // Process the input data and return augmented data.
-export interface DataProcessor<T> {
-    process(data: T): T
+export interface DataProcessor {
+    process(data: IndoorBikeData): IndoorBikeData
     reset(): void
 }
 
 @Injectable({
     providedIn: 'root'
 })
-export class ProcessingPipeline<T> {
-    private processors: DataProcessor<T>[] = [];
+export class ProcessingPipeline {
+    private processors: DataProcessor[] = [];
+
+    constructor(
+        private elapsedTimeProcessor: ElapsedTimeProcessorService,
+        private totalDistanceProcessor: TotalDistanceProcessorService,
+        private gradeProcessor: GradeProcessorService
+    ) {
+        this.addProcessor(elapsedTimeProcessor)
+        this.addProcessor(totalDistanceProcessor)
+        this.addProcessor(gradeProcessor)
+    }
+
+
 
     reset(): void {
         this.processors.forEach(processor => processor.reset())
     }
 
-    addProcessor(processor: DataProcessor<T>): void {
+    addProcessor(processor: DataProcessor): void {
         this.processors.push(processor);
     }
 
-    process(data: T): T {
+    process(data: IndoorBikeData): IndoorBikeData {
         return this.processors.reduce((currentData, processor) => {
             return processor.process(currentData);
         }, data);

@@ -2,9 +2,6 @@ import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { FitnessMachineService, IndoorBikeData, ProcessingPipeline } from './FitnessMachineService';
-import { ElapsedTimeProcessorService } from './elapsed-time-processor.service';
-import { TotalDistanceProcessorService } from './total-distance-processor.service';
-import { GradeProcessorService } from './grade-processor.service';
 
 interface SupportedResistanceLevelRange {
   minimumResistanceLevel: number,
@@ -28,14 +25,8 @@ export class BluetoothFitnessMachineService implements FitnessMachineService {
 
   constructor(
     private toastrService: ToastrService,
-    private processingPipeline: ProcessingPipeline<IndoorBikeData>,
-    private elapsedTimeProcessor: ElapsedTimeProcessorService,
-    private totalDistanceProcessor: TotalDistanceProcessorService,
-    private gradeProcessor: GradeProcessorService
+    private processingPipeline: ProcessingPipeline,
   ) { 
-    processingPipeline.addProcessor( elapsedTimeProcessor)
-    processingPipeline.addProcessor( totalDistanceProcessor)
-    processingPipeline.addProcessor( gradeProcessor )
   }
 
   private device: BluetoothDevice | undefined

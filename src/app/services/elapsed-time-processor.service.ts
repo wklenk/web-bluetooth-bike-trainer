@@ -4,7 +4,7 @@ import { DataProcessor, IndoorBikeData } from "./FitnessMachineService";
 @Injectable({
   providedIn: 'root'
 })
-export class ElapsedTimeProcessorService implements DataProcessor<IndoorBikeData> {
+export class ElapsedTimeProcessorService implements DataProcessor {
     
     private startTime = 0
 

@@ -2,9 +2,6 @@ import { Injectable } from '@angular/core';
 import { FitnessMachineService, IndoorBikeData, ProcessingPipeline } from './FitnessMachineService';
 import { Subject } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
-import { ElapsedTimeProcessorService } from './elapsed-time-processor.service';
-import { TotalDistanceProcessorService } from './total-distance-processor.service';
-import { GradeProcessorService } from './grade-processor.service';
 
 @Injectable({
   providedIn: 'root'
@@ -18,14 +15,8 @@ export class DemoFitnessMachineService implements FitnessMachineService {
 
   constructor(
     private toastrService: ToastrService,
-    private processingPipeline: ProcessingPipeline<IndoorBikeData>,
-    private elapsedTimeProcessor: ElapsedTimeProcessorService,
-    private totalDistanceProcessor: TotalDistanceProcessorService,
-    private gradeProcessor: GradeProcessorService
+    private processingPipeline: ProcessingPipeline
   ) { 
-    processingPipeline.addProcessor( elapsedTimeProcessor)
-    processingPipeline.addProcessor( totalDistanceProcessor)
-    processingPipeline.addProcessor( gradeProcessor )
   }
 
   connect(): Promise<void> {

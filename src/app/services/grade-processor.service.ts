@@ -5,7 +5,7 @@ import { DistanceAndElevation } from "../components/altitude-profile/altitude-pr
 @Injectable({
     providedIn: 'root'
 })
-export class GradeProcessorService implements DataProcessor<IndoorBikeData> {
+export class GradeProcessorService implements DataProcessor {
 
     reducedWaypoints: DistanceAndElevation[] = []
 

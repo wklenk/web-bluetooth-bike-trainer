@@ -6,18 +6,27 @@ import { GradeIngestionService } from '../../services/grade-ingestion.service';
   standalone: true,
   imports: [],
   template: `
-    ↗ {{ grade }}%
+    {{ icon }} {{ grade }}%
   `
 })
 export class GradeComponent implements OnInit {
 
-  grade = 0
+  grade = "0.0"
+  icon = '⟶'
 
   constructor(private gradeIngestionService: GradeIngestionService) { }
 
   ngOnInit() {
     this.gradeIngestionService.gradeIngestionData$.subscribe((gradeIngestionData) => {
-      this.grade = Math.round(gradeIngestionData.grade)
+      this.grade = gradeIngestionData.grade.toFixed(1)
+
+      if (gradeIngestionData.grade > 0.1) {
+        this.icon = '↗'
+      } else if (gradeIngestionData.grade < -0.1) {
+        this.icon = '↘'
+      } else {
+        this.icon = '⟶'
+      }
     });
   }
 }

@@ -1,6 +1,6 @@
 /// <reference types="web-bluetooth" />
 
-import { AfterViewInit, Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import * as L from 'leaflet';

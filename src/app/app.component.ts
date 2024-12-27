@@ -22,7 +22,6 @@ import { SpeedComponent } from './components/speed/speed.component';
 import { PowerComponent } from './components/power/power.component';
 import { AltitudeProfileComponent } from './components/altitude-profile/altitude-profile.component';
 import { StorageService } from './services/storage.service';
-import { GradeIngestionService } from './services/grade-ingestion.service';
 import { FITNESS_MACHINE_SERVICE, FitnessMachineService } from './services/FitnessMachineService';
 
 export interface ElevationPoint {
@@ -70,14 +69,13 @@ export class AppComponent implements AfterViewInit, OnInit {
   constructor(
     private toastrService: ToastrService,
     private storageService: StorageService,
-    private gradeIngestionService: GradeIngestionService,
     @Inject(FITNESS_MACHINE_SERVICE) private fitnessMachineService: FitnessMachineService
   ) { }
 
   startSimulation(): void {
     if (!this.isSimulationStarted) {
       this.inProgress = true
-      this.gradeIngestionService.connect()
+      this.fitnessMachineService.connect()
         .then(() => {
           this.fitnessMachineService.startNotifications()
         })
@@ -100,7 +98,7 @@ export class AppComponent implements AfterViewInit, OnInit {
 
       this.fitnessMachineService.stopNotifications()
         .then(() => {
-          this.gradeIngestionService.disconnect()
+          this.fitnessMachineService.disconnect()
         })
         .then(() => {
           this.toastrService.info("Info", "Disconnected")
@@ -116,9 +114,9 @@ export class AppComponent implements AfterViewInit, OnInit {
   }
 
   ngOnInit() {
-    this.gradeIngestionService.gradeIngestionData$.subscribe((gradeIngestionData) => {
+    this.fitnessMachineService.indoorBikeData$.subscribe(indoorBikeData => {
       // Update marker on track
-      this.handlePositionChangeEvent(gradeIngestionData.calculatedTotalDistance)
+      this.handlePositionChangeEvent(indoorBikeData.calculatedTotalDistance)
     });
   }
 

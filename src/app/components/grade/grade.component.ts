@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { GradeIngestionService } from '../../services/grade-ingestion.service';
+import { Component, Inject, OnInit } from '@angular/core';
+import { FITNESS_MACHINE_SERVICE, FitnessMachineService } from '../../services/FitnessMachineService';
 
 @Component({
   selector: 'app-grade',
@@ -14,15 +14,15 @@ export class GradeComponent implements OnInit {
   grade = "0.0"
   icon = '⟶'
 
-  constructor(private gradeIngestionService: GradeIngestionService) { }
+  constructor(@Inject(FITNESS_MACHINE_SERVICE) private fitnessMachineService: FitnessMachineService) { }
 
   ngOnInit() {
-    this.gradeIngestionService.gradeIngestionData$.subscribe((gradeIngestionData) => {
-      this.grade = gradeIngestionData.grade.toFixed(1)
+    this.fitnessMachineService.indoorBikeData$.subscribe(indoorBikeData => {
+      this.grade = indoorBikeData.calculatedGrade.toFixed(1)
 
-      if (gradeIngestionData.grade > 0.1) {
+      if (indoorBikeData.calculatedGrade > 0.1) {
         this.icon = '↗'
-      } else if (gradeIngestionData.grade < -0.1) {
+      } else if (indoorBikeData.calculatedGrade < -0.1) {
         this.icon = '↘'
       } else {
         this.icon = '⟶'

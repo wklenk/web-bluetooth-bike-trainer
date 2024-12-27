@@ -1,9 +1,10 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Inject, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import * as L from 'leaflet';
 import { Point } from 'leaflet';
 import 'leaflet-gpx'; // Import the Leaflet GPX plugin
-import { GradeIngestionService } from '../../services/grade-ingestion.service';
 import { StorageService } from '../../services/storage.service';
+import { FITNESS_MACHINE_SERVICE, FitnessMachineService } from '../../services/FitnessMachineService';
+import { GradeProcessorService } from '../../services/grade-processor.service';
 
 export interface DistanceAndElevation {
   distance: number // in m
@@ -61,20 +62,24 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
   svgWidth = 0
   svgHeight = 0
 
-  constructor(private gradeIngestionService: GradeIngestionService, private storageService: StorageService, private elementRef: ElementRef) {
+  constructor(
+    @Inject(FITNESS_MACHINE_SERVICE) private fitnessMachineService: FitnessMachineService,
+    private gradeProcessor: GradeProcessorService,
+    private storageService: StorageService, 
+    private elementRef: ElementRef) {
   }
 
   ngOnInit() {
     // Update the cursor position once the simulation has started.
-    this.gradeIngestionService.gradeIngestionData$.subscribe((gradeIngestionData) => {
+    this.fitnessMachineService.indoorBikeData$.subscribe(indoorBikeData => {
       const p = this.toScreenCoordinates({
-        distance: gradeIngestionData.calculatedTotalDistance,
+        distance: indoorBikeData.calculatedTotalDistance,
         elevation: 0
       })
       this.cursorX = p.x
 
-      this.cursorDistance = `${gradeIngestionData.calculatedTotalDistance.toFixed(0)}`
-      const elevationAtDistance = this.findElevationByDistance(gradeIngestionData.calculatedTotalDistance)
+      this.cursorDistance = `${indoorBikeData.calculatedTotalDistance.toFixed(0)}`
+      const elevationAtDistance = this.findElevationByDistance(indoorBikeData.calculatedTotalDistance)
       this.cursorElevation = `${elevationAtDistance}`
     });
   }
@@ -125,10 +130,10 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
         // this.updateWaypointPolylineString()
         this.reduceWaypoints()
 
-        // Give the reduced waypoints to the Grade ingestion service to enable it
+        // Give the reduced waypoints to the Grade processor to enable it
         // to calculate the grade based on the simplified elevation profile
         // and control the indoor bike simulation.
-        this.gradeIngestionService.setReducedWaypoints(this.reducedWaypoints)
+        this.gradeProcessor.setReducedWaypoints(this.reducedWaypoints)
       }
     }
   }

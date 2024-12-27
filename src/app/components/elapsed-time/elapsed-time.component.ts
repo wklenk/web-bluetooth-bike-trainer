@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { ElapsedTimeIngestionService } from '../../services/elapsed-time-ingestion.service';
+import { Component, Inject, OnInit } from '@angular/core';
+import { FITNESS_MACHINE_SERVICE, FitnessMachineService } from '../../services/FitnessMachineService';
 
 @Component({
   selector: 'app-elapsed-time',
@@ -12,11 +12,11 @@ import { ElapsedTimeIngestionService } from '../../services/elapsed-time-ingesti
 export class ElapsedTimeComponent implements OnInit {
   elapsedTime = "00:00:00";
 
-  constructor(private elapsedTimeIngestionService: ElapsedTimeIngestionService) { }
+  constructor(@Inject(FITNESS_MACHINE_SERVICE) private fitnessMachineService: FitnessMachineService) { }
 
   ngOnInit() {
-    this.elapsedTimeIngestionService.elapsedTimeIngestionData$.subscribe((elapsedTimeIngestionData) => {
-      this.elapsedTime = this.formatSecondsToHHMMSS(elapsedTimeIngestionData.calculatedElapsedTime)
+    this.fitnessMachineService.indoorBikeData$.subscribe(indoorBikeData => {
+      this.elapsedTime = this.formatSecondsToHHMMSS(indoorBikeData.calculatedElapsedTime)
     });
   }
 

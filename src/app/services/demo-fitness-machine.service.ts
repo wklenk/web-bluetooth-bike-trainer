@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
-import { FitnessMachineService, IndoorBikeData } from './FitnessMachineService';
+import { FitnessMachineService, IndoorBikeData, ProcessingPipeline } from './FitnessMachineService';
 import { Subject } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
+import { ElapsedTimeProcessorService } from './elapsed-time-processor.service';
+import { TotalDistanceProcessorService } from './total-distance-processor.service';
+import { GradeProcessorService } from './grade-processor.service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,10 +16,22 @@ export class DemoFitnessMachineService implements FitnessMachineService {
 
   intervalId: any | undefined;
 
-  constructor(private toastrService: ToastrService) { }
+  constructor(
+    private toastrService: ToastrService,
+    private processingPipeline: ProcessingPipeline<IndoorBikeData>,
+    private elapsedTimeProcessor: ElapsedTimeProcessorService,
+    private totalDistanceProcessor: TotalDistanceProcessorService,
+    private gradeProcessor: GradeProcessorService
+  ) { 
+    processingPipeline.addProcessor( elapsedTimeProcessor)
+    processingPipeline.addProcessor( totalDistanceProcessor)
+    processingPipeline.addProcessor( gradeProcessor )
+  }
 
   connect(): Promise<void> {
     this.toastrService.success('Demo connected.')
+
+    this.processingPipeline.reset()
     return Promise.resolve()
   }
 
@@ -25,9 +40,9 @@ export class DemoFitnessMachineService implements FitnessMachineService {
   }
 
   startNotifications(): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       this.intervalId = setInterval(() => {
-        const indoorBikeData: IndoorBikeData = {
+        let indoorBikeData: IndoorBikeData = {
           instantaneousSpeedPresent: true,
           instantaneousSpeed: Math.random() * 50,
           averageSpeedPresent: false,
@@ -54,7 +69,15 @@ export class DemoFitnessMachineService implements FitnessMachineService {
           nativeResistanceLevel: 0,
           nativeTotalDistancePresent: false,
           nativeTotalDistance: 0, // in m
+
+          calculatedElapsedTime: 0,
+          calculatedTotalDistance: 0, // m
+          calculatedGrade: 0 // %
         };
+
+        // Apply all processors that augment the data.
+        indoorBikeData = this.processingPipeline.process(indoorBikeData)
+
         this.indoorBikeDataSubject.next(indoorBikeData);
       }, 500);
       resolve()
@@ -71,9 +94,5 @@ export class DemoFitnessMachineService implements FitnessMachineService {
         reject()
       }
     })
-  }
-
-  setIndoorBikeSimulationParameters(windSpeed: number, grade: number, crr: number, cw: number): Promise<void> {
-    return Promise.resolve()
   }
 }

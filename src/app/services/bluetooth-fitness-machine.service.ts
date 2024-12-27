@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
-import { FitnessMachineService, IndoorBikeData } from './FitnessMachineService';
+import { FitnessMachineService, IndoorBikeData, ProcessingPipeline } from './FitnessMachineService';
+import { ElapsedTimeProcessorService } from './elapsed-time-processor.service';
+import { TotalDistanceProcessorService } from './total-distance-processor.service';
+import { GradeProcessorService } from './grade-processor.service';
 
 interface SupportedResistanceLevelRange {
   minimumResistanceLevel: number,
@@ -23,7 +26,17 @@ export class BluetoothFitnessMachineService implements FitnessMachineService {
   private indoorBikeDataSubject = new Subject<IndoorBikeData>()
   indoorBikeData$ = this.indoorBikeDataSubject.asObservable()
 
-  constructor(private toastrService: ToastrService) { }
+  constructor(
+    private toastrService: ToastrService,
+    private processingPipeline: ProcessingPipeline<IndoorBikeData>,
+    private elapsedTimeProcessor: ElapsedTimeProcessorService,
+    private totalDistanceProcessor: TotalDistanceProcessorService,
+    private gradeProcessor: GradeProcessorService
+  ) { 
+    processingPipeline.addProcessor( elapsedTimeProcessor)
+    processingPipeline.addProcessor( totalDistanceProcessor)
+    processingPipeline.addProcessor( gradeProcessor )
+  }
 
   private device: BluetoothDevice | undefined
   private server: BluetoothRemoteGATTServer | undefined
@@ -31,6 +44,8 @@ export class BluetoothFitnessMachineService implements FitnessMachineService {
   private fitnessMachineControlPointCharacteristic: BluetoothRemoteGATTCharacteristic | undefined
   public supportedResistanceLevelRange: SupportedResistanceLevelRange | undefined
   public supportedPowerRange: SupportedPowerRange | undefined
+
+  lastGrade: number | undefined = undefined
 
   async connect(): Promise<void> {
     try {
@@ -81,6 +96,8 @@ export class BluetoothFitnessMachineService implements FitnessMachineService {
 
       await this.reset()
       await this.setWheelCircumference(2200)
+
+      this.processingPipeline.reset()
     } catch (error) {
       console.error('Error connecting and setting up FitnessMachineService:', error);
     }
@@ -108,7 +125,17 @@ export class BluetoothFitnessMachineService implements FitnessMachineService {
   private onIndoorBikeDataChanged(event: Event): void {
     const characteristic = event.target as BluetoothRemoteGATTCharacteristic;
     if (characteristic.value) {
-      const indoorBikeData = this.parseIndoorBikeData(characteristic.value);
+      let indoorBikeData = this.parseIndoorBikeData(characteristic.value);
+
+      // Apply all processors that augment the data.
+      indoorBikeData = this.processingPipeline.process(indoorBikeData)
+
+      // Apply a new grade to the fitness machine
+      if (this.lastGrade && this.lastGrade !== indoorBikeData.calculatedGrade) {
+        this.setIndoorBikeSimulationParameters(0, indoorBikeData.calculatedGrade, 0, 0)
+        this.lastGrade = indoorBikeData.calculatedGrade
+      }
+
       this.indoorBikeDataSubject.next(indoorBikeData);
     }
   }
@@ -243,6 +270,11 @@ export class BluetoothFitnessMachineService implements FitnessMachineService {
       nativeResistanceLevel: 0,
       nativeTotalDistancePresent: false,
       nativeTotalDistance: 0, // in m
+
+      // Values calculated by this app
+      calculatedElapsedTime: 0,
+      calculatedTotalDistance: 0, // m
+      calculatedGrade: 0 // %
     }
 
     let index = 2
@@ -327,7 +359,6 @@ export class BluetoothFitnessMachineService implements FitnessMachineService {
       index += 2
     }
 
-    console.log('IndoorBikeData:', result)
     return result
   }
 

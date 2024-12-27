@@ -1,4 +1,4 @@
-import { InjectionToken } from "@angular/core";
+import { Injectable, InjectionToken } from "@angular/core";
 import { Observable } from "rxjs";
 
 
@@ -12,8 +12,6 @@ export interface FitnessMachineService {
     disconnect(): void; // Disconnect from the fitness machine
     startNotifications(): Promise<void>; // Start receiving notifications
     stopNotifications(): Promise<void>; // Stop receiving notifications
-
-    setIndoorBikeSimulationParameters(windSpeed: number, grade: number, crr: number, cw: number): Promise<void>
 }
 
 export interface IndoorBikeData {
@@ -45,4 +43,36 @@ export interface IndoorBikeData {
     nativeTotalDistance: number, // m
     nativeResistanceLevelPresent: boolean,
     nativeResistanceLevel: number,
+
+    // Values calculated by this app
+    calculatedElapsedTime: number, // s
+    calculatedTotalDistance: number // m
+    calculatedGrade: number // percent
+}
+
+// Process the input data and return augmented data.
+export interface DataProcessor<T> {
+    process(data: T): T
+    reset(): void
+}
+
+@Injectable({
+    providedIn: 'root'
+})
+export class ProcessingPipeline<T> {
+    private processors: DataProcessor<T>[] = [];
+
+    reset(): void {
+        this.processors.forEach(processor => processor.reset())
+    }
+
+    addProcessor(processor: DataProcessor<T>): void {
+        this.processors.push(processor);
+    }
+
+    process(data: T): T {
+        return this.processors.reduce((currentData, processor) => {
+            return processor.process(currentData);
+        }, data);
+    }
 }

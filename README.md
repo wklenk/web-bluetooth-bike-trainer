@@ -31,6 +31,28 @@ Start screen with GPX track imported.
 * You can move a cursor over the altitude profile to see details like distance and elevation.
 * At the very bottom, you see some overall information about the track.
 
+## Demo mode vs. real Bluetooth Bike Trainer
+
+You can't try out everything by mounting the bike trainer again and again.
+
+Therefore, a demo mode can be activated.
+
+Check file `main.ts`:
+
+````javascript
+bootstrapApplication(AppComponent, {
+  providers: [
+    ...
+
+    // This allows to switch between the BluetoothFitnessMachineService which requires
+    // a real Bluetooth Indoor Bike Trainer and the DemoFitnessMachineService, which just
+    // simulates one.
+    //{ provide: FITNESS_MACHINE_SERVICE, useClass: BluetoothFitnessMachineService },
+    { provide: FITNESS_MACHINE_SERVICE, useClass: DemoFitnessMachineService },
+  ]
+}).catch(err => console.error(err));
+````
+
 ## How to build and run
 
 Preconditions:
@@ -90,8 +112,3 @@ The following sources of information were helpful:
 * https://leafletjs.com Leaflet
 * https://github.com/mpetazzoni/leaflet-gpx GPX plugin for Leaflet
 * https://github.com/ashish-chopra/ngx-gauge A highly customizable Gauge component for Angular apps and dashboards. 
-
-## Development server
-
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
-

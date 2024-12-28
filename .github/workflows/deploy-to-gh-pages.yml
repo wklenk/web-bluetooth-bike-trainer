@@ -33,5 +33,5 @@ jobs:
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        github_token: ${{ secrets.READ_REPO_TOKEN }}
         publish_dir: dist/ # The directory where the built files are located

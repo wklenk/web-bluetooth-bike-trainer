@@ -8,11 +8,10 @@ Live demo: https://wklenk.github.io/web-bluetooth-bike-trainer/
 
 Functional to-dos:
 * The algorithm to reduce the waypoints is currently very simple. It should get optimized.
+* Somehow make sure that there are no abrupt slope changes, without completely destroying the original track charactersistics.
 * Start/End of reduced waypoints is unclear.
 * Test on bike trainers other then Wahoo Kickr.
-
-Technical to-dos:
-* Upgrade to pnpm and Vite
+* Wheight of person and bike are not reflected.
 
 
 Started this repository as a christmas holiday project 2023/2024 to experimentally check out if a smart bike trainer (like [Wahoo Kickr](https://www.wahoofitness.com/devices/indoor-cycling/bike-trainers/kickr-buy)) can be controlled by a standalone web application, using the [Web Bluetooth API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Bluetooth_API) of the web browser.

@@ -1,5 +1,7 @@
 # Web Bluetooth Bike Trainer
 
+[![Build and deploy to GitHub Pages](https://github.com/wklenk/web-bluetooth-bike-trainer/actions/workflows/deploy-to-gh-pages.yml/badge.svg)](https://github.com/wklenk/web-bluetooth-bike-trainer/actions/workflows/deploy-to-gh-pages.yml)
+
 Status: Functional
 
 Functional to-dos:

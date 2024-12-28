@@ -1,6 +1,6 @@
 /// <reference types="web-bluetooth" />
 
-import { AfterViewInit, Component, Inject, OnInit } from '@angular/core';
+import { AfterViewInit, Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import 'leaflet';
@@ -11,7 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 
-import {ToastrModule, ToastrService } from 'ngx-toastr';
+import {ToastContainerDirective, ToastrModule, ToastrService } from 'ngx-toastr';
 
 import { ElapsedTimeComponent } from './components/elapsed-time/elapsed-time.component';
 import { DistanceComponent } from './components/distance/distance.component';
@@ -37,6 +37,7 @@ export interface ElevationPoint {
 
     // BrowserAnimationsModule,
     ToastrModule,
+    ToastContainerDirective,
 
     MatButtonModule,
     MatProgressBarModule,
@@ -55,6 +56,9 @@ export interface ElevationPoint {
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements AfterViewInit, OnInit {
+  @ViewChild(ToastContainerDirective, { static: true })
+  toastContainer: ToastContainerDirective | undefined;
+
   title = 'Web Bluetooth Bike Trainer';
   inProgress = false
 
@@ -114,6 +118,8 @@ export class AppComponent implements AfterViewInit, OnInit {
   }
 
   ngOnInit() {
+    this.toastrService.overlayContainer = this.toastContainer;
+
     this.fitnessMachineService.indoorBikeData$.subscribe(indoorBikeData => {
       // Update marker on track
       this.handlePositionChangeEvent(indoorBikeData.calculatedTotalDistance)

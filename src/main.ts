@@ -14,7 +14,8 @@ bootstrapApplication(AppComponent, {
     provideAnimations(), // required animations providers
     provideToastr({
       timeOut: 3000,
-      preventDuplicates: true
+      preventDuplicates: true,
+      positionClass: 'inline'
     }),
 
     // This allows to switch between the BluetoothFitnessMachineService which requires

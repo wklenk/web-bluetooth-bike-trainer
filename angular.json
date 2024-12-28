@@ -20,6 +20,7 @@
             "outputPath": "dist/web-bluetooth-bike-trainer",
             "index": "src/index.html",
             "browser": "src/main.ts",
+            "baseHref": "/web-bluetooth-bike-trainer/",
             "polyfills": [
               "zone.js"
             ],

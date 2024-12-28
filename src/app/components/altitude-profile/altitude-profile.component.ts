@@ -2,7 +2,6 @@ import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Injec
 import * as L from 'leaflet';
 import { Point } from 'leaflet';
 import 'leaflet-gpx'; // Import the Leaflet GPX plugin
-import { StorageService } from '../../services/storage.service';
 import { FITNESS_MACHINE_SERVICE, FitnessMachineService } from '../../services/FitnessMachineService';
 import { GradeProcessorService } from '../../services/grade-processor.service';
 
@@ -23,7 +22,7 @@ export interface DistanceAndElevation {
         <text [attr.x]="cursorX + 3" y="20" fill="blue" font-size="16">⟷ {{cursorDistance}}m</text>
         <text [attr.x]="cursorX + 3" y="40" fill="blue" font-size="16">▲ {{cursorElevation}}m</text>
 
-        <!-- <polyline [attr.points]="profilePolylineString" fill="none" stroke="black" stroke-width="5"></polyline> -->
+        <polyline [attr.points]="profilePolylineString" fill="none" stroke="grey" stroke-width="5"></polyline>
         <polyline [attr.points]="reducedProfilePolylineString" fill="none" stroke="black" stroke-width="5"></polyline>
 
         <text [attr.x]="3"[attr.y]="svgHeight - 3" fill="black" font-weight="bold" font-size="16">⟷ {{totalDistance}}m ‖ ▲ {{altitudeMin}}m - {{altitudeMax}}m ‖ ↕ {{altitudeDiff}}m ‖ ↑ {{altitudeGain}}m ‖ ↓ {{altitudeLoss}}m</text>
@@ -65,7 +64,6 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
   constructor(
     @Inject(FITNESS_MACHINE_SERVICE) private fitnessMachineService: FitnessMachineService,
     private gradeProcessor: GradeProcessorService,
-    private storageService: StorageService, 
     private elementRef: ElementRef) {
   }
 
@@ -127,7 +125,7 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
         })
 
         // Convert all the waypoints to a polyline string in screen coordinates.
-        // this.updateWaypointPolylineString()
+        this.updateWaypointPolylineString()
         this.reduceWaypoints()
 
         // Give the reduced waypoints to the Grade processor to enable it
@@ -193,7 +191,7 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
     this.updatePosition()
 
     // The scaling of the altitude profile panel has changed, screen coordinates need to be recalculated
-    // this.updateWaypointPolylineString()
+    this.updateWaypointPolylineString()
     this.updateReducedWaypointPolylineString()
   }
 

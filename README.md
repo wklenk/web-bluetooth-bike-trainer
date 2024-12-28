@@ -42,9 +42,33 @@ Install dependencies
 
 Run development server
 
-    npm run build
+    npm run start
 
 Use your browser and open http://localhost:4200 .   
+
+## How to test run on a local web server
+
+One way to run and test the application in a more realistic environment is to use *nginx* as simple web server.
+
+A docker compose config file `docker-compose.yml` is prepared.
+
+Preconditions:
+
+* Docker installed
+
+Run
+    npm run build
+
+Use *docker compose* to start up nginx:
+
+    docker compose up
+
+or
+
+    docker compose up -d
+
+then point your browser to http://localhost/web-bluetooth-bike-trainer/ .
+    
 
 ## Sources
 The following sources of information were helpful:

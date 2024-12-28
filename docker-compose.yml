@@ -1,0 +1,9 @@
+version: '3.8'
+services:
+  nginx:
+    image: nginx:latest
+    container_name: angular-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./dist/web-bluetooth-bike-trainer/browser:/usr/share/nginx/html/web-bluetooth-bike-trainer

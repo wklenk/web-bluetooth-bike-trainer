@@ -3,9 +3,9 @@
 import { AfterViewInit, Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+import 'leaflet';
+import 'leaflet-gpx';
 import * as L from 'leaflet';
-import { GPX } from 'leaflet';
-import 'leaflet-gpx'; // Import the Leaflet GPX plugin
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -156,7 +156,7 @@ export class AppComponent implements AfterViewInit, OnInit {
       new L.GPX(gpxData, {
         async: true
       }).on('loaded', (e: L.LeafletEvent) => {
-        this.leafletGpx = e.target as GPX;
+        this.leafletGpx = e.target as L.GPX;
         this.map?.fitBounds(this.leafletGpx.getBounds(), {
           paddingTopLeft: [10, 10],
           paddingBottomRight: [10, 10]

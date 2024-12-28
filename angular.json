@@ -21,7 +21,6 @@
             "index": "src/index.html",
             "browser": "src/main.ts",
             "baseHref": "/web-bluetooth-bike-trainer/",
-            "deployUrl": "/web-bluetooth-bike-trainer/",
             "polyfills": [
               "zone.js"
             ],
@@ -35,7 +34,7 @@
               {
                 "glob": "**/*",
                 "input": "node_modules/leaflet/dist/images",
-                "output": "/media"
+                "output": "/"
               },
               {
                 "glob": "**/*.png",
@@ -49,7 +48,11 @@
               "node_modules/ngx-toastr/toastr.css",
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "leaflet",
+              "leaflet-gpx"
+            ]
           },
           "configurations": {
             "production": {

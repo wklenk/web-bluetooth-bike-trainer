@@ -4,6 +4,8 @@
 
 Status: Functional
 
+Live demo: https://wklenk.github.io/web-bluetooth-bike-trainer/
+
 Functional to-dos:
 * The algorithm to reduce the waypoints is currently very simple. It should get optimized.
 * Start/End of reduced waypoints is unclear.

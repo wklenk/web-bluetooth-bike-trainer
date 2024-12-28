@@ -1,12 +1,12 @@
 <mat-toolbar color="primary" style="opacity: 0.9;">
   <span>{{title}}</span>
   <span class="toolbar-spacer"></span>
-  <app-elapsed-time></app-elapsed-time>
-  <span class="toolbar-spacer"></span>
-  <app-distance></app-distance>
-  <span class="toolbar-spacer"></span>
-  <app-grade></app-grade>
-  <span class="toolbar-spacer"></span>
+  <app-elapsed-time *ngIf="isSimulationStarted"></app-elapsed-time>
+  <span class="toolbar-spacer" *ngIf="isSimulationStarted"></span>
+  <app-distance *ngIf="isSimulationStarted"></app-distance>
+  <span class="toolbar-spacer" *ngIf="isSimulationStarted"></span>
+  <app-grade *ngIf="isSimulationStarted"></app-grade>
+  <span class="toolbar-spacer" *ngIf="isSimulationStarted"></span>
   <input *ngIf="!isSimulationStarted" type="file" (change)="onFileSelected($event)" />
   <button mat-raised-button color="primary" *ngIf="!isSimulationStarted" (click)="startSimulation()">Start Simulation</button>
   <button mat-raised-button color="primary" *ngIf="isSimulationStarted" (click)="stopSimulation()">Stop Simulation</button>

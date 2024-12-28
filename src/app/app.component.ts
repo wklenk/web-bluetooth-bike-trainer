@@ -170,6 +170,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     if (inputElement) {
       const files = inputElement.files
       if (files) {
+        this.toastrService.info(`File ${files[0].name} (${files[0].size} bytes)`)
         this.parseGpxFile(files[0])
       }
     }
@@ -182,9 +183,11 @@ export class AppComponent implements AfterViewInit, OnInit {
     reader.onload = (event: ProgressEvent<FileReader>) => {
       this.inProgress = false
       const content = event.target?.result as string;
+      this.toastrService.info(`File uploaded.`)
 
       // Remember the GPX track in the local browser storage
       this.storageService.storeItem('GpxTrack', content)
+      this.toastrService.info(`File stored in browser storage for re-use.`)
 
       this.displayGPXTrack(content) // Use leaflet-gpx to draw a polyline on the map, including markers
       this.parseElevationFromGpxFile(content) // Addtionally to leaflet-gpx, get distance, elevation AND LatLng of points

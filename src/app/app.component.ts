@@ -20,7 +20,7 @@ import { HeartRateComponent } from './components/heart-rate/heart-rate.component
 import { CadenceComponent } from './components/cadence/cadence.component';
 import { SpeedComponent } from './components/speed/speed.component';
 import { PowerComponent } from './components/power/power.component';
-import { AltitudeProfileComponent } from './components/altitude-profile/altitude-profile.component';
+import { ElevationProfileComponent } from './components/elevation-profile/elevation-profile.component';
 import { StorageService } from './services/storage.service';
 import { FITNESS_MACHINE_SERVICE, FitnessMachineService } from './services/FitnessMachineService';
 
@@ -50,7 +50,7 @@ export interface ElevationPoint {
     CadenceComponent,
     SpeedComponent,
     PowerComponent,
-    AltitudeProfileComponent
+    ElevationProfileComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
@@ -217,7 +217,7 @@ export class AppComponent implements AfterViewInit, OnInit {
   // Well, leaflet-gpx alread reads and provides elevation-by-distance of all track points,
   // but it (unfortunately) does not provide LatLng of these points. Need to have this
   // LatLngs of the points to draw a marker when the user moves the move over
-  // the altitude profile. So this is kind of a re-implementation what leaflet-gpx does,
+  // the elevation profile. So this is kind of a re-implementation what leaflet-gpx does,
   // plus adding th LatLngs of the points.
   private parseElevationFromGpxFile(gpxData: string): void {
 
@@ -336,7 +336,7 @@ export class AppComponent implements AfterViewInit, OnInit {
   }
 
   // Move a marker along the trace based on the position of the mouse in the
-  // altitude profile component
+  // Elevation Profile component
   handlePositionChangeEvent(distance: number): void {
     // Update marker on
     if (this.elevationPoints.length > 0) {

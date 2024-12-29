@@ -27,8 +27,8 @@ Start screen with GPX track imported.
 ![Start screen with GPX track imported](media/2024-12-26_14h20_22.png)
 
 * The waypoints are visualized on a map.
-* At the bottom section, an altitude profile is displayed.
-* You can move a cursor over the altitude profile to see details like distance and elevation.
+* At the bottom section, an elevation profile is displayed.
+* You can move a cursor over the elevation profile to see details like distance and elevation.
 * At the very bottom, you see some overall information about the track.
 
 ## Demo mode vs. real Bluetooth Bike Trainer

@@ -1,12 +1,12 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Inject, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import * as L from 'leaflet';
 import { Point } from 'leaflet';
-import 'leaflet-gpx'; // Import the Leaflet GPX plugin
+import 'leaflet-gpx';
 import { Waypoint, FITNESS_MACHINE_SERVICE, FitnessMachineService } from '../../services/FitnessMachineService';
 import { GradeProcessorService } from '../../services/grade-processor.service';
 
 @Component({
-  selector: 'app-altitude-profile',
+  selector: 'app-elevation-profile',
   standalone: true,
   imports: [],
   template: `
@@ -20,17 +20,17 @@ import { GradeProcessorService } from '../../services/grade-processor.service';
         <polyline [attr.points]="profilePolylineString" fill="none" stroke="grey" stroke-width="5"></polyline>
         <polyline [attr.points]="reducedProfilePolylineString" fill="none" stroke="black" stroke-width="5"></polyline>
 
-        <text [attr.x]="3"[attr.y]="svgHeight - 3" fill="black" font-weight="bold" font-size="16">⟷ {{totalDistance}}m ‖ ▲ {{altitudeMin}}m - {{altitudeMax}}m ‖ ↕ {{altitudeDiff}}m ‖ ↑ {{altitudeGain}}m ‖ ↓ {{altitudeLoss}}m</text>
+        <text [attr.x]="3"[attr.y]="svgHeight - 3" fill="black" font-weight="bold" font-size="16">⟷ {{totalDistance}}m ‖ ▲ {{elevationMin}}m - {{elevationMax}}m ‖ ↕ {{elevationDiff}}m ‖ ↑ {{elevationGain}}m ‖ ↓ {{elevationLoss}}m</text>
     </svg>  
   `
 })
-export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewInit {
+export class ElevationProfileComponent implements OnInit, OnChanges, AfterViewInit {
 
   @Input() leafletGpx: L.GPX | undefined
 
   @Input() isSimulationStarted = false
 
-  // Emits the current distance index on the track based on the marker in this altitude profile
+  // Emits the current distance index on the track based on the marker in this Elevation Profile
   @Output() positionChangeEvent = new EventEmitter<number>();
 
   cursorX = 0
@@ -38,11 +38,10 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
   totalDistance = 0
   elevationDiff = 0
   minElevation = 0
-  altitudeMin = 0
-  altitudeMax = 0
-  altitudeDiff = 0
-  altitudeGain = 0
-  altitudeLoss = 0
+  elevationMin = 0
+  elevationMax = 0
+  elevationGain = 0
+  elevationLoss = 0
 
   cursorDistance = ""
   cursorElevation = ""
@@ -79,11 +78,10 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['leafletGpx']) {
-      this.altitudeMin = Math.round(this.leafletGpx?.get_elevation_min() || 0)
-      this.altitudeMax = Math.round(this.leafletGpx?.get_elevation_max() || 0)
-      this.altitudeDiff = this.altitudeMax - this.altitudeMin
-      this.altitudeGain = Math.round(this.leafletGpx?.get_elevation_gain() || 0)
-      this.altitudeLoss = Math.round(this.leafletGpx?.get_elevation_loss() || 0)
+      this.elevationMin = Math.round(this.leafletGpx?.get_elevation_min() || 0)
+      this.elevationMax = Math.round(this.leafletGpx?.get_elevation_max() || 0)
+      this.elevationGain = Math.round(this.leafletGpx?.get_elevation_gain() || 0)
+      this.elevationLoss = Math.round(this.leafletGpx?.get_elevation_loss() || 0)
 
       this.minElevation = this.leafletGpx?.get_elevation_min() || 0
       const maxElevation = this.leafletGpx?.get_elevation_max()
@@ -91,7 +89,7 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
       const maxDistance = this.leafletGpx?.get_distance()
 
       if (this.minElevation && maxElevation && maxDistance) {
-        this.elevationDiff = maxElevation - this.minElevation
+        this.elevationDiff = Math.round((maxElevation - this.minElevation) * 10) / 10
         this.totalDistance = Math.round(maxDistance)
 
         this.waypoints = []
@@ -185,7 +183,7 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
   onResize(): void {
     this.updatePosition()
 
-    // The scaling of the altitude profile panel has changed, screen coordinates need to be recalculated
+    // The scaling of the Elevation Profile panel has changed, screen coordinates need to be recalculated
     this.updateWaypointPolylineString()
     this.updateReducedWaypointPolylineString()
   }

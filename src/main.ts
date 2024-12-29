@@ -5,7 +5,7 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 
 import { provideToastr } from 'ngx-toastr';
 
-import { FITNESS_MACHINE_SERVICE } from './app/services/FitnessMachineService';
+import { FITNESS_MACHINE_SERVICE } from './app/services/fitness-machine.service';
 import { BluetoothFitnessMachineService } from './app/services/bluetooth-fitness-machine.service';
 import { DemoFitnessMachineService } from './app/services/demo-fitness-machine.service';
 

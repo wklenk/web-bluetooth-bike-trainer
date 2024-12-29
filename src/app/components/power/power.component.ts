@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { NgxGaugeModule } from 'ngx-gauge';
-import { FITNESS_MACHINE_SERVICE, FitnessMachineService } from '../../services/FitnessMachineService';
+import { FITNESS_MACHINE_SERVICE, FitnessMachineService } from '../../services/fitness-machine.service';
 
 @Component({
   selector: 'app-power',

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
-import { FitnessMachineService, IndoorBikeData, ProcessingPipeline } from './FitnessMachineService';
+import { FitnessMachineService, IndoorBikeData, ProcessingPipeline } from './fitness-machine.service';
 
 interface SupportedResistanceLevelRange {
   minimumResistanceLevel: number,

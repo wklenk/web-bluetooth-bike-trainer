@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FitnessMachineService, IndoorBikeData, ProcessingPipeline } from './FitnessMachineService';
+import { FitnessMachineService, IndoorBikeData, ProcessingPipeline } from './fitness-machine.service';
 import { Subject } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 

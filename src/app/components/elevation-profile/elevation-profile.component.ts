@@ -2,7 +2,7 @@ import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Injec
 import * as L from 'leaflet';
 import { Point } from 'leaflet';
 import 'leaflet-gpx';
-import { Waypoint, FITNESS_MACHINE_SERVICE, FitnessMachineService } from '../../services/FitnessMachineService';
+import { Waypoint, FITNESS_MACHINE_SERVICE, FitnessMachineService } from '../../services/fitness-machine.service';
 import { GradeProcessorService } from '../../services/grade-processor.service';
 
 @Component({

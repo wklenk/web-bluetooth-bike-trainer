@@ -22,7 +22,7 @@ import { SpeedComponent } from './components/speed/speed.component';
 import { PowerComponent } from './components/power/power.component';
 import { ElevationProfileComponent } from './components/elevation-profile/elevation-profile.component';
 import { StorageService } from './services/storage.service';
-import { FITNESS_MACHINE_SERVICE, FitnessMachineService } from './services/FitnessMachineService';
+import { FITNESS_MACHINE_SERVICE, FitnessMachineService } from './services/fitness-machine.service';
 
 export interface ElevationPoint {
   distance: number,

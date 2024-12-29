@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { DataProcessor, IndoorBikeData } from "./FitnessMachineService";
+import { DataProcessor, IndoorBikeData } from "./fitness-machine.service";
 
 @Injectable({
     providedIn: 'root'

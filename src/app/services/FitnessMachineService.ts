@@ -5,6 +5,11 @@ import { TotalDistanceProcessorService } from "./total-distance-processor.servic
 import { GradeProcessorService } from "./grade-processor.service";
 
 
+export interface Waypoint {
+  distance: number // in m
+  elevation: number // in m
+}
+
 // Define the InjectionToken for the interface
 export const FITNESS_MACHINE_SERVICE = new InjectionToken<FitnessMachineService>('FitnessMachineService')
 

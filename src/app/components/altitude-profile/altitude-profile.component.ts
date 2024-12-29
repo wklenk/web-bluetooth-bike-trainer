@@ -2,13 +2,8 @@ import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Injec
 import * as L from 'leaflet';
 import { Point } from 'leaflet';
 import 'leaflet-gpx'; // Import the Leaflet GPX plugin
-import { FITNESS_MACHINE_SERVICE, FitnessMachineService } from '../../services/FitnessMachineService';
+import { Waypoint, FITNESS_MACHINE_SERVICE, FitnessMachineService } from '../../services/FitnessMachineService';
 import { GradeProcessorService } from '../../services/grade-processor.service';
-
-export interface DistanceAndElevation {
-  distance: number // in m
-  elevation: number // in m
-}
 
 @Component({
   selector: 'app-altitude-profile',
@@ -52,10 +47,10 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
   cursorDistance = ""
   cursorElevation = ""
 
-  reducedWaypoints: DistanceAndElevation[] = []
+  reducedWaypoints: Waypoint[] = []
   reducedProfilePolylineString = "" // For drawing a SVG polyline from GPX track
 
-  waypoints: DistanceAndElevation[] = []
+  waypoints: Waypoint[] = []
   profilePolylineString = "" // For drawing a SVG polyline from GPX track
 
   svgWidth = 0
@@ -100,11 +95,11 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
         this.totalDistance = Math.round(maxDistance)
 
         this.waypoints = []
-        let currentDistanceAndElevation: DistanceAndElevation = {
+        let currentDistanceAndElevation: Waypoint = {
           distance: 0,
           elevation: 0
         }
-        let lastDistanceAndElevation: DistanceAndElevation = {
+        let lastDistanceAndElevation: Waypoint = {
           distance: 0,
           elevation: 0
         }
@@ -308,7 +303,7 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
   }
 
   // Convert from screen coordinates to real world coordinates
-  private toDistanceAndElevation(point: Point): DistanceAndElevation {
+  private toDistanceAndElevation(point: Point): Waypoint {
     return {
       distance: (point.x / this.svgWidth * this.totalDistance),
       elevation: ((this.svgHeight - point.y) / this.svgHeight * this.elevationDiff) + this.minElevation
@@ -316,7 +311,7 @@ export class AltitudeProfileComponent implements OnInit, OnChanges, AfterViewIni
   }
 
   // Convert from real world coordinates to screen coordinates
-  private toScreenCoordinates(distanceAndElevation: DistanceAndElevation): Point {
+  private toScreenCoordinates(distanceAndElevation: Waypoint): Point {
     const height = this.svgHeight - 20 // Some padding at top and bottom
     const yOffset = 10
 

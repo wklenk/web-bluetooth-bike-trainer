@@ -1,13 +1,12 @@
 import { Injectable } from "@angular/core";
-import { DataProcessor, IndoorBikeData } from "./FitnessMachineService";
-import { DistanceAndElevation } from "../components/altitude-profile/altitude-profile.component";
+import { DataProcessor, Waypoint, IndoorBikeData } from "./FitnessMachineService";
 
 @Injectable({
     providedIn: 'root'
 })
 export class GradeProcessorService implements DataProcessor {
 
-    reducedWaypoints: DistanceAndElevation[] = []
+    reducedWaypoints: Waypoint[] = []
 
     process(indoorBikeData: IndoorBikeData): IndoorBikeData {
         if (!indoorBikeData.calculatedTotalDistance || !this.reducedWaypoints) {
@@ -27,7 +26,7 @@ export class GradeProcessorService implements DataProcessor {
         // Nothing to reset
     }
 
-    setReducedWaypoints(reducedWaypoints: DistanceAndElevation[]) {
+    setReducedWaypoints(reducedWaypoints: Waypoint[]) {
         this.reducedWaypoints = reducedWaypoints
     }
 

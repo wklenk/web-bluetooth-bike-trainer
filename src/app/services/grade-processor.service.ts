@@ -31,25 +31,47 @@ export class GradeProcessorService implements DataProcessor {
     }
 
     private findGradeByDistance(distance: number): number {
-
         if (!this.reducedWaypoints) {
-            return 0
+            throw Error()
         }
 
-        for (let i = 0; i < this.reducedWaypoints.length - 1; i++) {
-            const elevationData0 = this.reducedWaypoints[i]
-            const elevationData1 = this.reducedWaypoints[i + 1]
+        const closestWaypointIndex = this.findWaypointIndexClosestToDistance(distance)
+        if (closestWaypointIndex === 0 || closestWaypointIndex === this.reducedWaypoints.length - 1) {
+            return 0; // Start or end of track
+        }
 
-            if (distance >= elevationData0.distance && distance < elevationData1.distance) {
-                const distanceDiff = elevationData1.distance - elevationData0.distance
-                const elevationDiff = elevationData1.elevation - elevationData0.elevation
+        const elevationData0 = this.reducedWaypoints[closestWaypointIndex - 1]
+        const elevationData1 = this.reducedWaypoints[closestWaypointIndex + 1]
 
-                const horizontalDiff = Math.sqrt(distanceDiff ** 2 - elevationDiff ** 2)
+        const distanceDiff = elevationData1.distance - elevationData0.distance
+        const elevationDiff = elevationData1.elevation - elevationData0.elevation
 
-                return elevationDiff / horizontalDiff * 100 // in %
+        const horizontalDiff = Math.sqrt(distanceDiff ** 2 - elevationDiff ** 2)
+
+        return elevationDiff / horizontalDiff * 100 // in %
+    }
+
+    private findWaypointIndexClosestToDistance(distance: number): number {
+        if (!this.reducedWaypoints) {
+            throw Error()
+        }
+
+        let left = 0;
+        let right = this.reducedWaypoints.length - 1;
+
+        while (left <= right) {
+            const mid = Math.floor((left + right) / 2)
+            const midDistance = this.reducedWaypoints[mid].distance
+
+            if (midDistance === distance) {
+                return mid
+            } else if (midDistance < distance) {
+                left = mid + 1
+            } else {
+                right = mid - 1
             }
         }
 
-        return 0
+        return left < this.reducedWaypoints.length ? left : this.reducedWaypoints.length - 1
     }
 }

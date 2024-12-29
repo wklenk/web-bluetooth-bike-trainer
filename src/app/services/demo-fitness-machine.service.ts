@@ -3,6 +3,13 @@ import { FitnessMachineService, IndoorBikeData, ProcessingPipeline } from './fit
 import { Subject } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 
+const MIN_SPEED = 5
+const MAX_SPEED = 50
+const MIN_CADENCE = 60
+const MAX_CADENCE = 110
+const MIN_POWER = 20
+const MAX_POWER = 300
+
 @Injectable({
   providedIn: 'root'
 })
@@ -13,10 +20,14 @@ export class DemoFitnessMachineService implements FitnessMachineService {
 
   intervalId: any | undefined;
 
+  speed = 30
+  cadence = 90
+  power = 150
+
   constructor(
     private toastrService: ToastrService,
     private processingPipeline: ProcessingPipeline
-  ) { 
+  ) {
   }
 
   connect(): Promise<void> {
@@ -33,17 +44,19 @@ export class DemoFitnessMachineService implements FitnessMachineService {
   startNotifications(): Promise<void> {
     return new Promise(resolve => {
       this.intervalId = setInterval(() => {
+        this.simulateValues()
+
         let indoorBikeData: IndoorBikeData = {
           instantaneousSpeedPresent: true,
-          instantaneousSpeed: Math.random() * 50,
+          instantaneousSpeed: this.speed,
           averageSpeedPresent: false,
           averageSpeed: 0,
           instantaneousCadencePresent: true,
-          instantaneousCadence: Math.random() * 100,
+          instantaneousCadence: this.cadence,
           averageCadencePresent: false,
           averageCadence: 0,
           instantaneousPowerPresent: true,
-          instantaneousPower: Math.random() * 300,
+          instantaneousPower: this.power,
           averagePowerPresent: false,
           averagePower: 0,
           expendedEnergyPresent: false,
@@ -85,5 +98,28 @@ export class DemoFitnessMachineService implements FitnessMachineService {
         reject()
       }
     })
+  }
+
+  private simulateValues() {
+    this.speed += Math.random() * 10 - 5
+    if (this.speed < MIN_SPEED) {
+      this.speed = MIN_SPEED
+    } else if (this.speed > MAX_SPEED) {
+      this.speed = MAX_SPEED
+    }
+
+    this.cadence += Math.random() * 10 - 5
+    if (this.cadence < MIN_CADENCE) {
+      this.cadence = MIN_CADENCE
+    } else if (this.cadence > MAX_CADENCE) {
+      this.cadence = MAX_CADENCE
+    }
+
+    this.power += Math.random() * 10 - 5
+    if (this.power < MIN_POWER) {
+      this.power = MIN_POWER
+    } else if (this.power > MAX_POWER) {
+      this.power = MAX_POWER
+    }
   }
 }

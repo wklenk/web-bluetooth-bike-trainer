@@ -1,6 +1,6 @@
 /// <reference types="web-bluetooth" />
 
-import { AfterViewInit, Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import 'leaflet';
@@ -23,6 +23,8 @@ import { PowerComponent } from './components/power/power.component';
 import { ElevationProfileComponent } from './components/elevation-profile/elevation-profile.component';
 import { StorageService } from './services/storage.service';
 import { FITNESS_MACHINE_SERVICE, FitnessMachineService } from './services/fitness-machine.service';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { StartUpDialogComponent } from './components/start-up-dialog/start-up-dialog.component';
 
 export interface ElevationPoint {
   distance: number,
@@ -42,6 +44,8 @@ export interface ElevationPoint {
     MatButtonModule,
     MatProgressBarModule,
     MatToolbarModule,
+    MatButtonModule, 
+    MatDialogModule,
 
     ElapsedTimeComponent,
     DistanceComponent,
@@ -53,11 +57,14 @@ export interface ElevationPoint {
     ElevationProfileComponent
   ],
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements AfterViewInit, OnInit {
   @ViewChild(ToastContainerDirective, { static: true })
   toastContainer: ToastContainerDirective | undefined;
+
+  readonly dialog = inject(MatDialog);
 
   title = 'Web Bluetooth Bike Trainer';
   inProgress = false
@@ -128,6 +135,14 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   ngAfterViewInit(): void {
     this.initMap();
+
+    // Show a dialog window with info at start-up.
+    const dontShowAgain = localStorage.getItem('dontShowAgain');
+    if (!dontShowAgain || JSON.parse(dontShowAgain) === false) {
+      this.dialog.open(StartUpDialogComponent, {
+        width: '500px'
+      });
+    }
 
     // Check if there is a gpx track in the local browser storage
     const localGpxTrackString = this.storageService.retrieveItem('GpxTrack')

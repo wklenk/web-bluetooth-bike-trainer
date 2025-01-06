@@ -1,6 +1,6 @@
 /// <reference types="web-bluetooth" />
 
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Inject, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, inject, Inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import 'leaflet';
@@ -57,8 +57,7 @@ export interface ElevationPoint {
     ElevationProfileComponent
   ],
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements AfterViewInit, OnInit {
   @ViewChild(ToastContainerDirective, { static: true })

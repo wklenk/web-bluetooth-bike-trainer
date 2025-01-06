@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -18,7 +18,6 @@ import { StorageService } from '../../services/storage.service';
     MatDividerModule, 
     FormsModule 
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h2 mat-dialog-title>Web Bluetooth Bike Trainer</h2>
     <mat-dialog-content class="mat-typography">

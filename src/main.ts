@@ -21,7 +21,7 @@ bootstrapApplication(AppComponent, {
     // This allows to switch between the BluetoothFitnessMachineService which requires
     // a real Bluetooth Indoor Bike Trainer and the DemoFitnessMachineService, which just
     // simulates one.
-    //{ provide: FITNESS_MACHINE_SERVICE, useClass: BluetoothFitnessMachineService },
-    { provide: FITNESS_MACHINE_SERVICE, useClass: DemoFitnessMachineService },
+    { provide: FITNESS_MACHINE_SERVICE, useClass: BluetoothFitnessMachineService },
+    //{ provide: FITNESS_MACHINE_SERVICE, useClass: DemoFitnessMachineService },
   ]
 }).catch(err => console.error(err));

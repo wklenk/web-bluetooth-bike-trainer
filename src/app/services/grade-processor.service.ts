@@ -9,8 +9,12 @@ export class GradeProcessorService implements DataProcessor {
     reducedWaypoints: Waypoint[] = []
 
     process(indoorBikeData: IndoorBikeData): IndoorBikeData {
-        if (!indoorBikeData.calculatedTotalDistance || !this.reducedWaypoints) {
+        if (!this.reducedWaypoints) {
             throw Error()
+        }
+
+        if (!indoorBikeData.calculatedTotalDistance) {
+            indoorBikeData.calculatedTotalDistance = 0
         }
 
         // Based on the distance, find the current elevation

@@ -36,7 +36,7 @@ export class BluetoothFitnessMachineService implements FitnessMachineService {
   public supportedResistanceLevelRange: SupportedResistanceLevelRange | undefined
   public supportedPowerRange: SupportedPowerRange | undefined
 
-  lastGrade: number | undefined = undefined
+  lastGrade: number | undefined = 0
 
   async connect(): Promise<void> {
     try {
@@ -126,7 +126,7 @@ export class BluetoothFitnessMachineService implements FitnessMachineService {
       indoorBikeData = this.processingPipeline.process(indoorBikeData)
 
       // Apply a new grade to the fitness machine
-      if (this.lastGrade && this.lastGrade !== indoorBikeData.calculatedGrade) {
+      if (this.lastGrade !== indoorBikeData.calculatedGrade) {
         this.setIndoorBikeSimulationParameters(0, indoorBikeData.calculatedGrade, 0, 0)
         this.lastGrade = indoorBikeData.calculatedGrade
       }

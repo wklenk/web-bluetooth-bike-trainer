@@ -159,6 +159,8 @@ export class ElevationProfileComponent implements OnInit, OnChanges, AfterViewIn
   private reduceWaypoints(): void {
     const fixedDistanceInterval = 50 // m
 
+    this.reducedWaypoints = []
+
     let distance = fixedDistanceInterval
     let weightedElevationAverage = 0
     while (distance < this.totalDistance) {

@@ -21,6 +21,7 @@
     "@angular/platform-browser": "^18.2.0",
     "@angular/platform-browser-dynamic": "^18.2.0",
     "@angular/router": "^18.2.0",
+    "@deancochran/ftms": "0.6.0",
     "install": "^0.13.0",
     "leaflet": "^1.9.4",
     "leaflet-gpx": "^1.7.0",

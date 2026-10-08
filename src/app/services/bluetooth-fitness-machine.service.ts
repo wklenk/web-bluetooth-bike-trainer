@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { FitnessMachineService, IndoorBikeData, ProcessingPipeline } from './fitness-machine.service';
+import { decodeIndoorBikeDataView } from './indoor-bike-data.decoder';
 
 interface SupportedResistanceLevelRange {
   minimumResistanceLevel: number,
@@ -120,7 +121,10 @@ export class BluetoothFitnessMachineService implements FitnessMachineService {
   private onIndoorBikeDataChanged(event: Event): void {
     const characteristic = event.target as BluetoothRemoteGATTCharacteristic;
     if (characteristic.value) {
-      let indoorBikeData = this.parseIndoorBikeData(characteristic.value);
+      let indoorBikeData = decodeIndoorBikeDataView(characteristic.value);
+      if (!indoorBikeData) {
+        return;
+      }
 
       // Apply all processors that augment the data.
       indoorBikeData = this.processingPipeline.process(indoorBikeData)
@@ -215,146 +219,6 @@ export class BluetoothFitnessMachineService implements FitnessMachineService {
     )
 
     await this.fitnessMachineControlPointCharacteristic?.writeValueWithResponse(setWheelCircumferenceMessage)
-  }
-
-  // See https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.indoor_bike_data.xml
-  private parseIndoorBikeData(data: DataView): IndoorBikeData {
-
-    const flags = data.getUint16(0, /*littleEndian=*/ true)
-
-    const moreDataPresent = flags & 0x0001
-    const averageSpeedPresent = flags & 0x0002
-    const instantaneousCadencePresent = flags & 0x0004
-    const averageCadencePresent = flags & 0x0008
-    const nativeTotalDistancePresent = flags & 0x0010
-    const nativeResistanceLevelPresent = flags & 0x0020
-    const instantaneousPowerPresent = flags & 0x0040
-    const averagePowerPresent = flags & 0x0080
-    const expendedEnergyPresent = flags & 0x0100
-    const heartRatePresent = flags & 0x0200
-    const metabolicEquivalentPresent = flags & 0x0400
-    const nativeElapsedTimePresent = flags & 0x0800
-    const remainingTimePresent = flags & 0x1000
-
-    const result: IndoorBikeData = {
-      instantaneousSpeedPresent: false,
-      instantaneousSpeed: 0,
-      averageSpeedPresent: false,
-      averageSpeed: 0,
-      instantaneousCadencePresent: false,
-      instantaneousCadence: 0,
-      averageCadencePresent: false,
-      averageCadence: 0,
-      instantaneousPowerPresent: false,
-      instantaneousPower: 0,
-      averagePowerPresent: false,
-      averagePower: 0,
-      expendedEnergyPresent: false,
-      totalEnergy: 0,
-      energyPerHour: 0,
-      energyPerMinute: 0,
-      heartRatePresent: false,
-      heartRate: 0,
-      metabolicEquivalentPresent: false,
-      metabolicEquivalent: 0,
-
-      // KICKR doesn't send it
-      nativeElapsedTimePresent: false,
-      nativeElapsedTime: 0,
-      nativeResistanceLevelPresent: false,
-      nativeResistanceLevel: 0,
-      nativeTotalDistancePresent: false,
-      nativeTotalDistance: 0, // in m
-
-      // Values calculated by this app
-      calculatedElapsedTime: 0,
-      calculatedTotalDistance: 0, // m
-      calculatedGrade: 0 // %
-    }
-
-    let index = 2
-
-    if (!moreDataPresent) {
-      result.instantaneousSpeedPresent = true
-      result.instantaneousSpeed = data.getUint16(index, /*littleEndian=*/ true) / 100;
-      index += 2
-    }
-
-    if (averageSpeedPresent) {
-      result.averageSpeedPresent = true
-      result.averageSpeed = data.getUint16(index, /*littleEndian=*/ true) / 100;
-      index += 2
-    }
-
-    if (instantaneousCadencePresent) {
-      result.instantaneousCadencePresent = true
-      result.instantaneousCadence = data.getUint16(index, /*littleEndian=*/ true) / 2;
-      index += 2
-    }
-
-    if (averageCadencePresent) {
-      result.averageCadencePresent = true
-      result.averageCadence = data.getUint16(index, /*littleEndian=*/ true) / 2;
-      index += 2
-    }
-
-    if (nativeTotalDistancePresent) {
-      result.nativeTotalDistancePresent = true
-      result.nativeTotalDistance = (data.getUint8(index + 2) * 256 + data.getUint8(index + 1)) * 256 + data.getUint8(index)
-      index += 3
-    }
-
-    if (nativeResistanceLevelPresent) {
-      result.nativeResistanceLevelPresent = true
-      result.nativeResistanceLevel = data.getInt16(index, /*littleEndian=*/ true)
-      index += 2
-    }
-
-    if (instantaneousPowerPresent) {
-      result.instantaneousPowerPresent = true
-      result.instantaneousPower = data.getInt16(index, /*littleEndian=*/ true)
-      index += 2
-    }
-
-    if (averagePowerPresent) {
-      result.averagePowerPresent = true
-      result.averagePower = data.getInt16(index, /*littleEndian=*/ true)
-      index += 2
-    }
-
-    if (expendedEnergyPresent) {
-      result.expendedEnergyPresent = true
-      result.totalEnergy = data.getUint16(index, /*littleEndian=*/ true)
-      index += 2
-      result.energyPerHour = data.getUint16(index, /*littleEndian=*/ true)
-      index += 2
-      result.energyPerMinute = data.getUint8(index)
-      index += 1
-    }
-
-    if (heartRatePresent) {
-      result.heartRatePresent = true
-      result.heartRate = data.getUint8(index)
-      index += 1
-    }
-
-    if (metabolicEquivalentPresent) {
-      result.metabolicEquivalentPresent = true
-      result.metabolicEquivalent = data.getUint8(index) / 10
-      index += 1
-    }
-
-    if (nativeElapsedTimePresent) {
-      result.nativeElapsedTimePresent = true
-      result.nativeElapsedTime = data.getUint16(index, /*littleEndian=*/ true)
-      index += 2
-    }
-
-    if (remainingTimePresent) {
-      index += 2
-    }
-
-    return result
   }
 
   // See https://github.com/oesmith/gatt-xml/blob/master/org.bluetooth.characteristic.supported_resistance_level_range.xml
